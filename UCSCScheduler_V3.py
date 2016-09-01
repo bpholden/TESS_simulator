@@ -1,11 +1,13 @@
-# UCSCScheduler_V2.py
+# UCSCScheduler_V3.py
+# now featuring Dynamic Priorities(tm)!
 
 from datetime import datetime, timedelta
 import ephem
 import gspread
 import json
-from oauth2client.client import SignedJwtAssertionCredentials
+#from oauth2client.client import SignedJwtAssertionCredentials
 from ExposureCalculations import getI2_M, getI2_K, getEXPMeter, getEXPMeter, getEXPTime
+import getpriority
 
 import numpy as np
 import os
@@ -18,12 +20,14 @@ try:
 except:
     from fake_apflog import *
 import re
+from astropy.table import Table
+from astropy.io import ascii
 
 # Some variables that will soon be moved to a separate file
 TARGET_ELEVATION_MIN = 20
-TARGET_ELEVATION_START_MIN = 30
+TARGET_ELEVATION_PREF_MIN = 45
 TARGET_ELEVATION_MAX = 85
-TARGET_EXPOSURE_TIME_MAX =  1* 60 * 60 # 1 hour
+TARGET_EXPOSURE_TIME_MAX =  3* 60 * 60 # 1 hour
 TARGET_MOON_DIST_MIN = 15
 TARGET_MOON_DIST_MAX = 25
 
@@ -35,20 +39,6 @@ MAX_I2 = 40000
 MIN_I2 = 500
 MAX_EXPMETER = 2e9
 
-# A few constants to make accessing the star table more readable
-DS_RA     = 0
-DS_DEC    = 1
-DS_PMRA   = 2
-DS_PMDEC  = 3
-DS_VMAG   = 4
-DS_EXPT   = 5
-DS_COUNTS = 6
-DS_APFPRI = 7
-DS_CAD    = 8
-DS_NSHOTS = 9
-DS_LAST   = 10
-DS_BV     = 11
-DS_ERR    = 12
 
 SLOWDOWN_MIN = 0.4
 SLOWDOWN_MAX = 10.0
@@ -63,7 +53,7 @@ def computeMaxTimes(sn,exp_times):
     maxtimes = np.zeros_like(exp_times)
     maxtimes += TARGET_EXPOSURE_TIME_MAX
     for i,n in enumerate(sn):
-        if re.match("K2APF",n):
+        if re.match("K2APF",str(n)):
             maxtimes[i] *= 3.
     
     return maxtimes
@@ -127,13 +117,13 @@ def parseStarlist(starlist):
             
     return names, np.array(star_table), lines, stars
 
-def get_spreadsheet(sheetn="The Googledex",certificate='UCSC Dynamic Scheduler-5b98d1283a95.json'):
+def get_spreadsheet(sheetn="FakeGoogledex",certificate='UCSC Dynamic Scheduler-5b98d1283a95.json'):
     """ Get the spreadsheet from google
 
-    worksheet = get_spreadsheet(sheetn="The Googledex",certificate='UCSC Dynamic Scheduler-5b98d1283a95.json')
+    worksheet = get_spreadsheet(sheetn="FakeGoogledex",certificate='UCSC Dynamic Scheduler-5b98d1283a95.json')
     worksheet - the worksheet object returned by the gspread module
 
-    sheetn - name of the google sheet, defaults to "The Googledex"
+    sheetn - name of the google sheet, defaults to "FakeGoogledex"
     certificate - certificate used to control access to the google sheet
     
     """
@@ -185,11 +175,21 @@ def findColumns(col_names,req_cols):
 
     return didx
 
-def parseGoogledex(sheetn="The Googledex",certificate='UCSC Dynamic Scheduler-5b98d1283a95.json',outfn="googledex.dat"):
+def write_as_table(full_codex, outfn):
+    hdr = full_codex[0]
+    success =  False
+    try:
+        ascii.write(full_codex[1:],outfn,names=full_codex[0],delimiter=",")
+        success = True
+    except:
+        apflog("Cannot write %s" % (outfn), level="warn")
+    return success
+
+def parseGoogledex(sheetn="FakeGoogledex",certificate='UCSC Dynamic Scheduler-5b98d1283a95.json',outfn="./newgoogledex.csv"):
     """ parseGoogledex parses the google sheet and returns the output as a tuple
     This routine downloads the data if needed and saves the output to a file. If the file exists, it just reads in the file.
     
-    names, star_table, do_flag, stars = parseGoogledex(sheetn="The Googledex",certificate='UCSC Dynamic Scheduler-5b98d1283a95.json',outfn="googledex.dat")
+    names, star_table, do_flag, stars = parseGoogledex(sheetn="FakeGoogledex",certificate='UCSC Dynamic Scheduler-5b98d1283a95.json',outfn="googledex.dat")
     names - a list of stars in the starlist
     star_table - a numpy array
     do_flag - a list of items on whether or not do="y" needs to be set for scriptobs 
@@ -199,78 +199,42 @@ def parseGoogledex(sheetn="The Googledex",certificate='UCSC Dynamic Scheduler-5b
     # Downloading all the values is going slowly.
     # Try to only have to load this once a day
     try:
-        f = open(os.path.join(os.getcwd(),outfn),'r')
+        data = ascii.read(os.path.join(os.getcwd(),outfn))
     except IOError:
         apflog( "Starting Googledex parse",echo=True)
         worksheet = get_spreadsheet(sheetn=sheetn,certificate=certificate)
         full_codex = worksheet.get_all_values()
+        
         #time = (datetime.now() - start).total_seconds()
         #print "Loaded Values. Took {0:f} seconds.".format(time)
-        f = open(os.path.join(os.getcwd(),"googledex.dat"),'w')
-        pickle.dump(full_codex, f)
-        f.close()
-    else:
-        full_codex = pickle.load(f)
-        f.close()
+        ofn = os.path.join(os.getcwd(),"newgoogledex.csv")
+        data = write_as_table(full_codex, ofn)
         
-    col_names = full_codex[0]
-    codex = full_codex[1:]
-
-    # These are the columns we need for scheduling
-    req_cols = ["Star Name", "RA hr", "RA min", "RA sec", \
-                "Dec deg", "Dec min", "Dec sec", "pmRA", "pmDEC", "Vmag", \
-                "APFtexp", "APFpri", "APFcad", "APFnshots", "lastobs", \
-                "B-V", "APF Desired Precision", "Close Companion"
-                ]
-    didx = findColumns(col_names,req_cols)
     
-    names = []
-    star_table = []
+    names = data['starname']
     do_flag = []
     stars = []
+    ras = []
+    decs = []
     # Build the star table to return to 
-    for ls in codex:
-        if ls[0] == '':
-            continue
-        if float(ls[didx["APFpri"]]) < 0.5: continue
-        row = []
-        # Get the star name
-        names.append(ls[didx["Star Name"]])
-        # Get the RA
-        row.append(getRARad(ls[didx["RA hr"]], ls[didx["RA min"]], ls[didx["RA sec"]]))
-        # Get the DEC
-        row.append(getDECRad(ls[didx["Dec deg"]], ls[didx["Dec min"]], ls[didx["Dec sec"]]))
-        for i in ("pmRA", "pmDEC", "Vmag","APFtexp"):
-            try:
-                row.append(float(ls[didx[i]]))
-            except ValueError:
-                row.append(0.0)
-        # For now use the old 1e9 count value
-        row.append(1.e9)
-        for i in ("APFpri", "APFcad", "APFnshots", "lastobs", "B-V", "APF Desired Precision" ):
-            try:
-                row.append(float(ls[didx[i]]))
-            except ValueError:
-                row.append(0.0)
-
-        match = re.search("\A(y|Y)",ls[didx["Close Companion"]])
-        if match:
-            do_flag.append("y")
-        else:
-            do_flag.append("")
-        
-        star_table.append(row)
+    for ind in range(0,len(data)):
         star = ephem.FixedBody()
-        star._ra = ephem.hours(":".join([ls[didx["RA hr"]], ls[didx["RA min"]], ls[didx["RA sec"]]]))
-        star._dec = ephem.degrees(":".join([ls[didx["Dec deg"]], ls[didx["Dec min"]], ls[didx["Dec sec"]]]))
+        star._ra = ephem.hours(":".join([str(data['rahr'][ind]),str(data['ramin'][ind]),str(data['rasec'][ind])]))
+        star._dec = ephem.degrees(":".join([str(data['decdeg'][ind]),str(data['decmin'][ind]),str(data['decsec'][ind])]))
+        star.name = str(data['starname'][ind])
         stars.append(star)
-
-    return (names, np.array(star_table), do_flag, stars)
+        do_flag.append(data['closecompanion'][ind])
+        ras.append(getRARad(str(data['rahr'][ind]),str(data['ramin'][ind]),str(data['rasec'][ind])))
+        decs.append(getDECRad(str(data['decdeg'][ind]),str(data['decmin'][ind]),str(data['decsec'][ind])))
+    data['ra'] = np.asarray(ras)
+    data['dec'] = np.asarray(decs)
+    data['precision'][data['precision'] < 1.0] = 1.0
+    return (names, data, do_flag, stars)
     
-def update_googledex_lastobs(filename, sheetn="The Googledex",time=None,certificate='UCSC Dynamic Scheduler-5b98d1283a95.json'):
+def update_googledex_lastobs(filename, sheetn="FakeGoogledex",time=None,certificate='UCSC Dynamic Scheduler-5b98d1283a95.json'):
     """
         Update the online googledex lastobs column assuming things in filename have been observed.
-        update_googledex_lastobs(filename, sheetn="The Googledex",time=None,certificate='UCSC Dynamic Scheduler-5b98d1283a95.json')
+        update_googledex_lastobs(filename, sheetn="FakeGoogledex",time=None,certificate='UCSC Dynamic Scheduler-5b98d1283a95.json')
 
         filename - where the observations are logged
     """
@@ -307,7 +271,7 @@ def update_googledex_lastobs(filename, sheetn="The Googledex",time=None,certific
                 
     apflog( "Updated Googledex",echo=True)
 
-def update_local_googledex(time,googledex_file="googledex.dat", observed_file="observed_targets"):
+def update_local_googledex(time,googledex_file="newgoogledex.csv", observed_file="observed_targets"):
     """
         Update the local copy of the googledex with the last observed star time.
         update_local_googledex(time,googledex_file="googledex.dat", observed_file="observed_targets")
@@ -317,42 +281,42 @@ def update_local_googledex(time,googledex_file="googledex.dat", observed_file="o
     """
     names, times = getObserved(observed_file)
 
+    phase_edges = [ getpriority.EDGE1, getpriority.EDGE2, getpriority.EDGE3, getpriority.EDGE4, getpriority.EDGE5]
+
     try:
-        g = open(googledex_file, 'r')
+        full_codex = ascii.read(googledex_file)
     except IOError:
         apflog("googledex file did not exist, so can't be updated",echo=True)
         return names,times
 
-    full_codex = pickle.load(g)
-    g.close()
+    if type(time) != datetime:
+        time = datetime.utcnow()
 
-    codex_cols = full_codex[0]
+    if len(names):
+        name = names[0]
+        # We have observed this star, so lets update the lastobs / phasebins
+        otime = times[names.index(name)]
+        if isinstance(otime,float):
+            t = datetime.fromtimestamp(otime)
+        else:
+            ohr, omin = otime
+        t = datetime(time.year, time.month, time.day, ohr, omin)
+        
+        jd = float(ephem.julian_date(t))
+        sidx, = np.where(full_codex['starname'] == name)
+        if full_codex['initialphase'][sidx] > 0:
+            phases = getpriority.compute_currentphase(jd,full_codex['foldperiod'][sidx],full_codex['initialphase'][sidx])
+            binnedphase = np.average(phases)
+            try:
+                length = len(binnedphase)
+                binnum = np.digitize(binnedphase, phase_edges)
+            except:
+                binnum = np.digitize([binnedphase], phase_edges)
+            binname = "phase%dbin" % (binnum)
+            full_codex[binname][sidx] += 1
+            apflog( "Updating local googledex star %s phase bin %s to %d" % (name, binname, int(full_codex[binname][sidx])),echo=True)
 
-    starNameIdx = codex_cols.index("Star Name")
-    lastObsIdx = codex_cols.index("lastobs")
-    
-    for i in range(1, len(full_codex)):
-        row = full_codex[i]
-        if row[starNameIdx] in names:
-            # We have observed this star, so lets update the last obs field
-            otime = times[names.index(row[starNameIdx])]
-            if isinstance(otime,float):
-                t = datetime.fromtimestamp(otime)
-            else:
-                hr, min = otime
-                if type(time) != datetime:
-                    time = datetime.utcnow()
-                t = datetime(time.year, time.month, time.day, hr, min)
-
-            # This keeps the JD precision to one decimal point. There is no real reason for this other than
-            # the googledex currently only stores the lastObs field to one decimal precision. Legacy styles FTW.
-            jd = round(float(ephem.julian_date(t)), 2) 
-            apflog( "Updating local googledex star %s from time %s to %s" % (row[starNameIdx], row[lastObsIdx], str(jd)),echo=True)
-            row[lastObsIdx] = str(jd)
-            full_codex[i] = row
-
-    with open(googledex_file, 'w') as f:
-        pickle.dump(full_codex, f)
+        ascii.write(full_codex,googledex_file,delimiter=",")
             
     return names, times
 
@@ -442,7 +406,7 @@ def getElAz(ra, dec, lat, lng, time):
                          (np.cos(el) * np.cos(lat)))
     return (np.degrees(el), np.degrees(az))
 
-def makeScriptobsLine(name, row, do_flag, t, decker="W",I2="Y",owner='Vogt'):
+def makeScriptobsLine(res, do_flag, t, decker="W",I2="Y",owner='Vogt'):
     """ given a name, a row in a star table and a do_flag, will generate a scriptobs line as a string
     line = makeScriptobsLine(name, row, do_flag, t, decker="W",I2="Y")
     name - name of star, first column in line
@@ -453,41 +417,41 @@ def makeScriptobsLine(name, row, do_flag, t, decker="W",I2="Y",owner='Vogt'):
     I2 - one character field for whether or not the Iodine cell is in, must be "Y" or "N"
     """
     focval = 0
-    if row[DS_APFPRI] > 9.9:
+    if res['PRI'] > 9.9:
         focval = 2
     """Takes a line from the star table and generates the appropriate line to pass to scriptobs. """
     # Start with the target name
-    ret = name + ' '
+    ret = str(res['NAME']) + ' '
     # Add the RA as three elements, HR, MIN, SEC
-    rastr = getCoordStr(np.degrees(row[DS_RA]),isRA=True)
+    rastr = getCoordStr(np.degrees(res['RA']),isRA=True)
     ret += rastr + ' '
     # Add the DEC as three elements, DEG, MIN, SEC
-    decstr = getCoordStr(np.degrees(row[DS_DEC]))
+    decstr = getCoordStr(np.degrees(res['DEC']))
     ret += decstr + ' '
     # Epoch
     ret += '2000 '
     # Proper motion RA and DEC
-    ret += 'pmra=' + str(row[DS_PMRA]) + ' '
-    ret += 'pmdec=' + str(row[DS_PMDEC]) + ' '
+    ret += 'pmra=' + str(res['PM_RA']) + ' '
+    ret += 'pmdec=' + str(res['PM_DEC']) + ' '
     # V Mag
-    ret += 'vmag=' + str(row[DS_VMAG]) + ' '
+    ret += 'vmag=%.2f ' % (res['VMAG'])
     # T Exp
-    if row[DS_EXPT] > MAX_EXPTIME:
+    if res['EXP_TIME'] > MAX_EXPTIME:
         ret += 'texp=%d ' % (int(MAX_EXPTIME))
     else:
-        ret += 'texp=' + str(int(row[DS_EXPT])) + ' '
+        ret += 'texp=%d '  % (int(res['EXP_TIME']))
     # I2
     ret += 'I2=%s ' % (I2)
     # lamp
     ret += 'lamp=none '
     # start time
-    ret += 'uth=' + str(t.hour) + ' '
-    ret += 'utm=' + str(t.minute) + ' '
+    ret += 'uth=%d ' % (t.hour) 
+    ret += 'utm=%d ' % (t.minute) 
     # Exp Count
-    if row[DS_COUNTS] > 3e9:
+    if res['COUNTS'] > 3e9:
         ret += 'expcount=%.3g' % (3e9) + ' '
     else:
-        ret += 'expcount=%.3g' % (row[DS_COUNTS]) + ' '
+        ret += 'expcount=%.3g' % (res['COUNTS']) + ' '
     # Decker
     ret += 'decker=%s ' % (decker)
     # do flag
@@ -496,7 +460,7 @@ def makeScriptobsLine(name, row, do_flag, t, decker="W",I2="Y",owner='Vogt'):
     else:
         ret += 'do= '
     # Count
-    ret += 'count=' + str(int(row[DS_NSHOTS])) 
+    ret += 'count=' + str(int(res['NEXP'])) 
 
     ret += ' foc=' + str(int(focval))
         
@@ -586,7 +550,7 @@ def calc_elevations(stars, observer):
         els.append(cur_el)
     return np.array(els)
 
-def is_visible(stars, observer, obs_len, start_min_el, fin_min_el, max_el):
+def is_visible(stars, observer, obs_len, min_el, pref_min_el, max_el):
     """ Args:
             stars: A list of pyephem bodies to evaluate visibility of
             observer: A pyephem observer to use a the visibility reference
@@ -604,7 +568,7 @@ def is_visible(stars, observer, obs_len, start_min_el, fin_min_el, max_el):
     ret = []
     fin_elevations = []
     start_elevations = []    
-    observer.horizon = start_min_el
+    observer.horizon = str(min_el)
     # Now loop over each body to check visibility
     for s, dt in zip(stars, obs_len):
         s.compute()
@@ -624,11 +588,11 @@ def is_visible(stars, observer, obs_len, start_min_el, fin_min_el, max_el):
         cur_el = np.degrees(s.alt)
         start_elevations.append(cur_el)
         
-        if fin_el < fin_min_el or fin_el > max_el:
+        if fin_el < min_el or fin_el > max_el:
             ret.append(False)
             continue
 
-        if cur_el < start_min_el or cur_el > max_el:
+        if cur_el < min_el or cur_el > max_el:
             ret.append(False)
             continue
 
@@ -660,8 +624,20 @@ def is_visible(stars, observer, obs_len, start_min_el, fin_min_el, max_el):
                 # The object rises above the max el before the observation finishes
                 ret.append(False)
                 continue
-#        apflog( "is_visible(): If the body never rises above the max limit no problem", echo=True)
-		
+        #        apflog( "is_visible(): If the body never rises above the max limit no problem", echo=True)
+
+        observer.horizon = str(pref_min_el)
+        s.compute(observer)
+        if not s.neverup:
+            # will transit above preferred elevation and still rising
+            try:
+                if ((s.set_time-s.rise_time) > dt/86400.) and cur_el < pref_min_el and np.degrees(s.az) < 180:
+                    # this star is currently low on the horizon but will be above the preferred elevation for the requested exposure time
+                    # NEED TO HANDLE ONLY RISING STARS
+                    ret.append(False)
+                    continue
+            except:
+                pass
         # Everything seems to be fine, so the target is visible!
         ret.append(True)
 #	apflog( "is_visible(): done searching targets", echo=True)
@@ -730,7 +706,7 @@ def smartList(starlist, time, seeing, slowdown):
     available = available & brightenough
 
     obs_length = star_table[:,DS_EXPT] * star_table[:,DS_NSHOTS] + 45 * (star_table[:,DS_NSHOTS]-1)
-    vis, star_elevations, fin_els = is_visible(stars,apf_obs,obs_length, TARGET_ELEVATION_START_MIN, TARGET_ELEVATION_MIN, TARGET_ELEVATION_MAX)
+    vis, star_elevations, fin_els = is_visible(stars,apf_obs,obs_length, TARGET_ELEVATION_MIN, TARGET_ELEVATION_PREF_MIN, TARGET_ELEVATION_MAX)
     available = available & vis
         
     done = [ True if n in observed else False for n in sn ]
@@ -803,7 +779,7 @@ def format_time(total, i2counts, hitthemall=False):
     return times, exps
 
 
-def getNext(time, seeing, slowdown, bstar=False, verbose=False,sheetn="The Googledex",owner='Vogt'):
+def getNext(time, seeing, slowdown, star_dates, bstar=False, standardstar=False, verbose=False,sheetn="FakeGoogledex",owner='Vogt',googledex_file="./newgoogledex.csv",method="inquad"):
     """ Determine the best target for UCSC team to observe for the given input.
         Takes the time, seeing, and slowdown factor.
         Returns a dict with target RA, DEC, Total Exposure time, and scritobs line
@@ -840,10 +816,10 @@ def getNext(time, seeing, slowdown, bstar=False, verbose=False,sheetn="The Googl
             ptime = dt
         else:
             ptime = datetime.utcnow()
-    observed, obstimes = update_local_googledex(ptime,googledex_file=os.path.join(os.getcwd(),"googledex.dat"), observed_file=os.path.join(os.getcwd(),"observed_targets"))
 
     # List of targets already observed
-#    observed, _ = getObserved(os.path.join(os.getcwd(),'observed_targets'))
+    observed, obstimes = update_local_googledex(ptime,googledex_file=googledex_file, observed_file=os.path.join(os.getcwd(),"observed_targets"))
+    
     global last_objs_attempted
     try:
         lastline = ktl.read("apftask","SCRIPTOBS_LINE")
@@ -892,31 +868,31 @@ def getNext(time, seeing, slowdown, bstar=False, verbose=False,sheetn="The Googl
     # Note -- RA and Dec are returned in Radians
     if verbose:
         apflog("getNext(): Parsing the Googledex...",echo=True)
-    sn, star_table, do_flag, stars = parseGoogledex(sheetn=sheetn)
-    sn = np.array(sn)
+    sn, star_table, do_flag, stars = parseGoogledex(sheetn=sheetn,outfn=googledex_file)
+    star_table['apfpri'],star_table['phases'] = getpriority.getpriority(star_table['starname'],star_table,ephem.julian_date(dt),star_dates,method=method,standard=standardstar)
+    
     targNum = len(sn)
     if verbose:
         apflog("getNext(): Parsed the Googledex...",echo=True)
 
     # Note which of these are B-Stars for later.
-    bstars = np.array([ True if 'HR' in n else False for n in sn ], dtype=bool)
+    bstars = star_table['comments'] == 'B star'
     if verbose:
         apflog("getNext(): Finding B stars",echo=True)
-
-
-    # Distance to stay away from the moon
-    md = TARGET_MOON_DIST_MAX - TARGET_MOON_DIST_MIN
-    minMoonDist = ((moon.phase / 100.) * md) + TARGET_MOON_DIST_MIN  
-
-
-    moonDist = np.degrees(np.sqrt((moon.ra - star_table[:,DS_RA])**2 + (moon.dec - star_table[:,DS_DEC])**2))
-
+        
     available = np.ones(targNum, dtype=bool)
     totexptimes = np.zeros(targNum, dtype=float)
     cur_elevations = np.zeros(targNum, dtype=float)
     i2cnts = np.zeros(targNum, dtype=float)
+    star_table['counts'] = np.zeros(targNum, dtype=float)
+    star_table['expt'] = np.zeros(targNum, dtype=float)
+    star_table['nshots'] = np.zeros(targNum, dtype=int)
 
     # Is the target behind the moon?
+    # Distance to stay away from the moon
+    md = TARGET_MOON_DIST_MAX - TARGET_MOON_DIST_MIN
+    minMoonDist = ((moon.phase / 100.) * md) + TARGET_MOON_DIST_MIN  
+    moonDist = np.degrees(np.sqrt((moon.ra - star_table['ra'])**2 + (moon.dec - star_table['dec'])**2))
     if verbose:
         apflog("getNext(): Culling stars behind the moon",echo=True)
     moon_check = np.where(moonDist > minMoonDist, True, False)
@@ -932,14 +908,14 @@ def getNext(time, seeing, slowdown, bstar=False, verbose=False,sheetn="The Googl
         if verbose:
             apflog("getNext(): Computing star elevations",echo=True)
         fstars = [s for s,_ in zip(stars,f) if _ ]
-        vis,star_elevations,fin_star_elevations = is_visible(fstars, apf_obs, [400]*len(bstars[f]), TARGET_ELEVATION_START_MIN, TARGET_ELEVATION_MIN, TARGET_ELEVATION_MAX)
+        vis,star_elevations,fin_star_elevations = is_visible(fstars, apf_obs, [400]*len(bstars[f]), TARGET_ELEVATION_MIN, TARGET_ELEVATION_PREF_MIN, TARGET_ELEVATION_MAX)
         
         available[f] = available[f] & vis
         cur_elevations[np.where(f)] += star_elevations[np.where(vis)]
        		
-        star_table[available, DS_COUNTS] = 1e9
-        star_table[available, DS_EXPT] = 900
-        star_table[available, DS_NSHOTS] = 2
+        star_table['counts'][available] = 1e9
+        star_table['expt'][available] = 900
+        star_table['nshots'][available] = 2
         totexptimes[available] = 400
 
     # Just need a normal star for observing
@@ -949,7 +925,6 @@ def getNext(time, seeing, slowdown, bstar=False, verbose=False,sheetn="The Googl
             apflog("getNext(): Culling B stars",echo=True)
         available = np.logical_and(available, np.logical_not(bstars))
         
-        # has the star been observed - commented out as redundant with cadence
         if len(last_objs_attempted)>0:
             for n in last_objs_attempted:
                 attempted = (sn == n)
@@ -962,15 +937,13 @@ def getNext(time, seeing, slowdown, bstar=False, verbose=False,sheetn="The Googl
             apflog("getNext(): Computing star elevations",echo=True)
         fstars = [s for s,_ in zip(stars,f) if _ ]
 #        star_elevations=calc_elevations(fstars,apf_obs)
-        vis,star_elevations,fin_star_elevations = is_visible(fstars, apf_obs, [0]*len(fstars),  TARGET_ELEVATION_START_MIN, TARGET_ELEVATION_MIN, TARGET_ELEVATION_MAX)
+        vis,star_elevations,fin_star_elevations = is_visible(fstars, apf_obs, [0]*len(fstars),  TARGET_ELEVATION_MIN, TARGET_ELEVATION_PREF_MIN, TARGET_ELEVATION_MAX)
         available[f] = available[f] & vis
         f = available
         fstars = [s for s,_ in zip(stars,f) if _ ]
         if verbose:
             apflog("getNext(): Computing exposure times",echo=True)
-        exp_times, exp_counts, i2counts = calculate_ucsc_exposure_time( star_table[f,DS_VMAG], \
-                                            star_table[f,DS_ERR], star_elevations[np.array(vis)], seeing, \
-                                            star_table[f,DS_BV])
+        exp_times, exp_counts, i2counts = calculate_ucsc_exposure_time( star_table['vmag'][f], star_table['precision'][f], star_elevations[np.array(vis)], seeing, star_table['b-v'][f])
         
         exp_times = exp_times * slowdown
         maxtimes = computeMaxTimes(sn[f],exp_times)
@@ -978,12 +951,11 @@ def getNext(time, seeing, slowdown, bstar=False, verbose=False,sheetn="The Googl
         i2cnts[f] += i2counts
         if verbose:
             apflog("getNext(): Formating exposure times",echo=True)
-        star_table[f, DS_EXPT], star_table[f, DS_NSHOTS] = format_time(exp_times,i2counts)
+        star_table['expt'][f], star_table['nshots'][f] = format_time(exp_times,i2counts)
         #        exp_counts /= star_table[f, DS_NSHOTS]
         if verbose:
             apflog("getNext(): Formating exposure meter",echo=True)
-        star_table[f, DS_COUNTS], star_table[f, DS_NSHOTS] = format_expmeter(exp_counts,star_table[f, DS_NSHOTS])
-        #        star_table[f, DS_COUNTS] = 1.1*exp_counts / star_table[f, DS_NSHOTS]
+        star_table['counts'][f], star_table['nshots'][f] = format_expmeter(exp_counts,star_table['nshots'][f])
 
         # Is the exposure time too long?
         if verbose:
@@ -997,7 +969,7 @@ def getNext(time, seeing, slowdown, bstar=False, verbose=False,sheetn="The Googl
         if verbose:
             apflog("getNext(): Computing stars visibility",echo=True)
         fstars = [s for s,_ in zip(stars,f) if _ ]
-        vis,star_elevations,fin_star_elevations = is_visible(fstars, apf_obs, exp_times,  TARGET_ELEVATION_START_MIN, TARGET_ELEVATION_MIN, TARGET_ELEVATION_MAX)
+        vis,star_elevations,fin_star_elevations = is_visible(fstars, apf_obs, exp_times,  TARGET_ELEVATION_MIN, TARGET_ELEVATION_PREF_MIN, TARGET_ELEVATION_MAX)
         if vis != []:
             available[f] = available[f] & vis
         cur_elevations[np.where(f)] += star_elevations[np.where(vis)]
@@ -1007,46 +979,23 @@ def getNext(time, seeing, slowdown, bstar=False, verbose=False,sheetn="The Googl
         apflog( "getNext(): Couldn't find any suitable targets!",level="error",echo=True)
         return None
 
-    cadence_check = (ephem.julian_date(dt) - star_table[:, DS_LAST]) / star_table[:, DS_CAD]
-    good_cadence = np.where(cadence_check >  star_table[:, DS_CAD], True, False)
-    good_cadence_available = available & good_cadence
+    pri = max(star_table['apfpri'][available])
+    sort_i = np.where(star_table['apfpri'][available] == pri, True, False)
 
-    if len(good_cadence_available):
-        try:
-            pri = max(star_table[good_cadence_available, DS_APFPRI])
-            sort_i = np.where(star_table[good_cadence_available, DS_APFPRI] == pri, True, False)
-        except:
-            pri = max(star_table[available, DS_APFPRI])
-            sort_i = np.where(star_table[available, DS_APFPRI] == pri, True, False)
-    elif len(available):
-        pri = max(star_table[available, DS_APFPRI])
-        sort_i = np.where(star_table[available, DS_APFPRI] == pri, True, False)
-    else:
-        apflog( "getNext(): Couldn't find any suitable targets!",level="error",echo=True)
-        return None
-
-        
-#    print sn[available][sort_i]
-#    print star_table[available, DS_APFPRI][sort_i]
-    starstr = "getNext(): star table available: %s" % (sn[good_cadence_available][sort_i]) 
+    starstr = "getNext(): star table available: %s" % (sn[available][sort_i]) 
     apflog(starstr,echo=True)
 
-    starstr = "getNext(): star table available priorities: %s" % (star_table[good_cadence_available, DS_APFPRI][sort_i]) 
-    apflog(starstr,echo=True)
+#    starstr = "getNext(): star table available priorities: %s" % (star_table['apfpri'][available][sort_i]) 
+#    apflog(starstr,echo=True)
      
-    if bstar:
-        sort_j = cur_elevations[good_cadence_available][sort_i].argsort()[::-1]
-    else:
-        sort_j = cadence_check[good_cadence_available][sort_i].argsort()[::-1]
-        cstr= "getNext(): cadence check: %s" %( cadence_check[good_cadence_available][sort_i][sort_j][0])
-        apflog(cstr,echo=True)
+    sort_j = cur_elevations[available][sort_i].argsort()[::-1]
     
-    t_n = sn[good_cadence_available][sort_i][sort_j][0]
+    t_n = sn[available][sort_i][sort_j][0]
 
-    elstr= "getNext(): star elevations %s" % (cur_elevations[good_cadence_available][sort_i][sort_j])
+    elstr= "getNext(): star elevations %s" % (cur_elevations[available][sort_i][sort_j])
     apflog(elstr,echo=True)
 
-    t_n = sn[good_cadence_available][sort_i][sort_j][0]
+    t_n = sn[available][sort_i][sort_j][0]
 
     apflog("getNext(): selected target %s" %( t_n) )
 
@@ -1059,19 +1008,19 @@ def getNext(time, seeing, slowdown, bstar=False, verbose=False,sheetn="The Googl
         
     res['RA']     = stars[idx].a_ra
     res['DEC']    = stars[idx].a_dec
-    res['PM_RA']  = star_table[idx, DS_PMRA]
-    res['PM_DEC'] = star_table[idx, DS_PMDEC]
-    res['VMAG']   = star_table[idx, DS_VMAG]
-    res['BV']     = star_table[idx, DS_BV]
-    res['COUNTS'] = star_table[idx, DS_COUNTS]
-    res['EXP_TIME'] = star_table[idx, DS_EXPT]
-    res['NEXP'] = star_table[idx, DS_NSHOTS]
+    res['PM_RA']  = 0.0
+    res['PM_DEC'] = 0.0
+    res['VMAG']   = star_table['vmag'][idx]
+    res['BV']     = star_table['b-v'][idx]
+    res['COUNTS'] = star_table['counts'][idx]
+    res['EXP_TIME'] = star_table['expt'][idx]
+    res['NEXP'] = star_table['nshots'][idx]
     res['TOTEXP_TIME'] = totexptimes[idx]
     res['I2CNTS'] = i2cnts[idx]
     res['NAME']   = sn[idx]
-    res['SCORE']  = star_table[idx,DS_NSHOTS]
-    res['PRI']    = star_table[idx, DS_APFPRI]
-    res['SCRIPTOBS'] = makeScriptobsLine(sn[idx], star_table[idx,:], do_flag[idx], dt, decker=confg['decker'], I2=confg['I2'], owner=owner)
+    res['SCORE']  = star_table['apfpri'][idx]
+    res['PRI']    = star_table['apfpri'][idx]
+    res['SCRIPTOBS'] = makeScriptobsLine(res, do_flag[idx], dt, decker=confg['decker'], I2=confg['I2'], owner=owner)
     return res
 
 
@@ -1082,13 +1031,13 @@ if __name__ == '__main__':
     otfn = "observed_targets"
     ot = open(otfn,"w")
     starttime = time.time()
-    result = getNext(starttime, 13.99, 1.8, bstar=True, verbose=True)
+    result = getNext(starttime, 13.99, 5, bstar=True, verbose=True)
     ot.write("%s\n" % (result["SCRIPTOBS"]))
     ot.close()
     starttime += 400
     for i in range(5):
         
-        result = getNext(starttime, 13.99, 1.8, bstar=False, verbose=True)
+        result = getNext(starttime, 13.99, 0.4, bstar=False, verbose=True)
         #result = smartList("tst_targets", time.time(), 13.5, 2.4)
 
         if result is None:

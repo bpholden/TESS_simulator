@@ -1,7 +1,6 @@
 import sys
-sys.path.append("../master")
 #from ExposureCalc import *
-import UCSCScheduler_V2 as ds
+import UCSCScheduler_V3 as ds
 import ExposureCalculations as ec
 import Generate_Errors as ge
 
@@ -15,7 +14,7 @@ import os
 
 import NightSim as ns
 
-def compute_simulation(curtime,star,apf_obs,slowdowns,fwhms,outfp):
+def compute_simulation(curtime,result,star,apf_obs,slowdowns,fwhms,jitter,outfp):
     actel = ns.compute_el(curtime,star,apf_obs)
     actslow, actfwhm = ns.rand_obs_sample(slowdowns,fwhms)
     actfwhm = ns.gen_seeing_el(actfwhm,actel)
@@ -39,9 +38,9 @@ def compute_simulation(curtime,star,apf_obs,slowdowns,fwhms,outfp):
     barycentertime += fexptime/(2.*86400)
     totcounts = fexptime * specrate
 
-    precision, true_error = ge.compute_real_uncertainty(totcounts,result['BV'])
+    precision, deviation, true_error = ge.compute_real_uncertainty(totcounts,result['BV'],jitter)
     
-    outstr = "%s %s %.5f %.1f %.1f %.2f %.2f %.2f %.2f" %(result['NAME'] , ephem.Date(curtime), ephem.julian_date(ephem.Date(barycentertime)), fexptime, totcounts, precision, true_error, actfwhm, actslow)
+    outstr = "%s %s %.5f %.1f %.1f %.2f %.2f %.2f %.2f %.2f" %(result['NAME'] , ephem.Date(curtime), ephem.julian_date(ephem.Date(barycentertime)), fexptime, totcounts, precision, deviation, true_error, actfwhm, actslow)
     print outstr
     outfp.write(outstr + "\n")
     return curtime, lastfwhm, lastslow
@@ -51,7 +50,7 @@ parser.add_option("-d","--date",dest="date",default="today")
 parser.add_option("-f","--fixed",dest="fixed",default="")
 parser.add_option("-s","--smartlist",dest="smartlist",default=False,action="store_true")
 parser.add_option("-g","--googledex",dest="googledex",default="The Googledex")
-parser.add_option("-i","--infile",dest="infile",default="googledex.dat")
+parser.add_option("-i","--infile",dest="infile",default="newgoogledex.csv")
 parser.add_option("-o","--outfile",dest="outfile",default=None)
 parser.add_option("-b","--bstar",dest="bstar",default=True,action="store_false")
 (options, args) = parser.parse_args()    
@@ -82,14 +81,16 @@ except Exception as e:
     print "cannot open file %s for output, %s,  exiting" % (outfile,e)
     sys.exit()
 
-hdrstr = "#starname date time mjd exptime i2counts precision error fwhm slowdown\n"
+hdrstr = "#starname date time mjd exptime i2counts precision deviation error fwhm slowdown\n"
 outfp.write(hdrstr)
         
 if options.fixed != "":
     allnames, star_table, lines, stars = ds.parseStarlist(options.fixed)
 else:
     allnames, star_table, do_flag, stars  = ds.parseGoogledex(sheetn=options.googledex,outfn=options.infile)
+    jitters = ge.generate_jitters(star_table)
 
+    
 fwhms = ns.gen_seeing()
 slowdowns = ns.gen_clouds()
 
@@ -106,14 +107,14 @@ while observing:
     if options.smartlist and options.fixed != "":
         result = ds.smartList(options.fixed, curtime, lastfwhm, lastslow)
     else:
-        result = ds.getNext(curtime, lastfwhm, lastslow, bstar=bstar, verbose=True)
+        result = ds.getNext(curtime, lastfwhm, lastslow, bstar=bstar, verbose=True, googledex_file=options.infile)
     if result:
         if bstar:
             bstar = False
         curtime += 70./86400 # acquisition time
-        idx = allnames.index(result['NAME'])
+        idx, = np.where(star_table['starname'] == result['NAME'])
         for i in range(0,int(result['NEXP'])):
-            (curtime,lastfwhm,lastslow) = compute_simulation(curtime,stars[idx],apf_obs,slowdowns,fwhms,outfp)
+            (curtime,lastfwhm,lastslow) = compute_simulation(curtime,result,stars[idx],apf_obs,slowdowns,fwhms,jitters[idx],outfp)
         ot = open(otfn,"a+")
         ot.write("%s\n" % (result["SCRIPTOBS"]))
         ot.close()

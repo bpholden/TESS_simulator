@@ -53,7 +53,7 @@ def getEXPMeter(i2, bv):
     expcounts - number of counts in the exposure meter when a star of the input color has the input number of counts in the I2 region
 
     i2counts - number of counts desired in the spectrum
-    bmv - color of the star (B-V, Johnson filters, Vega mags.)
+    bv - color of the star (B-V, Johnson filters, Vega mags.)
     """
     delta = 4.52
     epsilon = -0.196
@@ -69,7 +69,7 @@ def getEXPMeter_Rate(v, bv, el, seeing, decker="W"):
     expcountrate - rate of photons landing on the exposure meter
     
     vmag - V magnitude of star (Johnson filters, Vega mag)
-    bmv - color of the star (B-V, Johnson filters, Vega mags.)
+    bv - color of the star (B-V, Johnson filters, Vega mags.)
     el - elevation in degrees
     seeing - seeing in pixels on the guider
     decker - an ascii letter, must match value in dictionary defined at top of module
@@ -83,9 +83,12 @@ def getEXPMeter_Rate(v, bv, el, seeing, decker="W"):
     # seeing  = 13.99
     light = x_gaussslit(slit_size[decker][0]/seeing, slit_size[decker][1]/seeing, 0, 0)
     # light = 0.442272
-    
-    VC = v - 2.5*np.log10(light)
-    x = (-1/2.5) * (VC + alpha*bv + beta*(1/np.cos(np.radians(90-el))) + Const)
+
+    if light > 0:    
+        VC = v - 2.5*np.log10(light)
+        x = (-1/2.5) * (VC + alpha*bv + beta*(1/np.cos(np.radians(90-el))) + Const)
+    else:
+        x = -10
     return (10 ** x)
 
 def getSpec_Rate( v, bv, el, seeing, decker="W"):
@@ -95,7 +98,7 @@ def getSpec_Rate( v, bv, el, seeing, decker="W"):
     rate - arrival rate in photons per second in the I2 region of the spectrometer.
     
     vmag - V magnitude of star (Johnson filters, Vega mag)
-    bmv - color of the star (B-V, Johnson filters, Vega mags.)
+    bv - color of the star (B-V, Johnson filters, Vega mags.)
     el - elevation in degrees
     seeing - seeing in pixels on the guider
     decker - an ascii letter, must match value in dictionary defined at top of module
@@ -114,8 +117,11 @@ def getSpec_Rate( v, bv, el, seeing, decker="W"):
         # bogus exposure time but the APF does not work this low anyway
         
 #    if len(bv) != len(el): print "Error: getEXPTime arrays don't match"
-    VC = v - 2.5*np.log10(light)
-    x = (-1/2.5) * (VC + alpha*bv + beta*(1/np.cos(np.radians(90-el))) + Const)
+    if light > 0:
+        VC = v - 2.5*np.log10(light)
+        x = (-1/2.5) * (VC + alpha*bv + beta*(1/np.cos(np.radians(90-el))) + Const)
+    else:
+        x = -10
     cnt_rate = 10**x
     return cnt_rate
 

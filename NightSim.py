@@ -1,7 +1,7 @@
 import sys
 sys.path.append("../master")
 #from ExposureCalc import *
-import UCSCScheduler_V2 as ds
+import UCSCScheduler_V3 as ds
 import ExposureCalculations as ec
 
 import numpy as np
@@ -28,23 +28,36 @@ def make_obs_sample(fn):
     slow,fwhm = np.loadtxt(fn,unpack=True)
     return slow, fwhm
 
-def gen_seeing(nsize=200):
-    val = np.random.uniform(size=1)
+def gen_seeing(nsize=200,val=-1):
+    if val < 0:
+        val = np.random.uniform(size=1)
+    alpha = 0.52
+    
     if val < 0.9:
-        mean = np.random.normal(loc=33.46,scale=1.0,size=1)
+        mean = np.random.normal(loc=8.46,scale=1.0,size=1)
         rms  = np.random.normal(loc=1.9,scale=1.0,size=1)
     else:
-        mean = np.random.normal(loc=41.0,scale=1.0,size=1)
+        mean = np.random.normal(loc=19.0,scale=1.0,size=1)
         rms  = np.random.normal(loc=4.5,scale=1.0,size=1)
-    deviates = np.random.normal(loc=mean,scale=rms,size=nsize)
+    real_rms = np.sqrt((1-alpha**2) * rms**2)
+    deviates = np.random.normal(loc=0,scale=real_rms,size=nsize)
+    for i in np.arange(1,nsize):
+        deviates[i] += alpha*deviates[i-1]
+    deviates += mean
+
+#    deviates = np.random.normal(loc=mean,scale=rms,size=nsize)
     return deviates
         
 def gen_seeing_el(deviate,el):
-    deviate += (-0.823637535775*el + 0.0104081289798*el*el +  -4.45020842236e-05*el*el*el)
+    zd = 90 - el
+    deviate += (0.0903544076597*zd +  -0.00172591889888*zd*zd + 3.3157238117e-05*zd*zd*zd)
     return deviate
 
-def gen_clouds(nsize=200):
-    val = np.random.uniform(size=1)
+def gen_clouds(nsize=200,val=-1):
+    if val < 0:
+        val = np.random.uniform(size=1)
+
+    alpha = 0.353
     if val < 0.7:
         mean = np.random.normal(loc=0.4,scale=0.1,size=1)
         rms  = np.random.normal(loc=0.1,scale=0.05,size=1)
@@ -55,8 +68,11 @@ def gen_clouds(nsize=200):
         mean = np.random.normal(loc=0.4,scale=0.1,size=1)
         rms  = np.random.normal(loc=0.3,scale=0.05,size=1)
 
-        
-    deviates = np.random.normal(loc=mean,scale=rms,size=nsize)
+    real_rms = np.sqrt((1-alpha**2) * rms**2)
+    deviates = np.random.normal(loc=0,scale=real_rms,size=nsize)
+    for i in np.arange(1,nsize):
+        deviates[i] += alpha*deviates[i-1]
+    deviates += mean
     deviates[deviates < 0.3] = 0.3
     return deviates
 
