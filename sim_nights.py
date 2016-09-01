@@ -100,8 +100,8 @@ def gen_datelist(startstr,endstr,double=False):
                         
     return datelist
 
-def write_sim_file_results(star_strs):
-    outpath = os.path.join(os.curdir,"..","SimFiles")
+def write_sim_file_results(star_strs,outdir="../SimFiles"):
+    outpath = os.path.join(os.curdir,outdir)
     for starname in star_strs.keys():
         ofn = "%s.sim" % (starname)
         ofn = os.path.join(outpath,ofn)
