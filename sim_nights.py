@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import random
 import re
 import os
+import shutil
 
 import NightSim as ns
 import UCSCScheduler_V3 as ds
@@ -132,10 +133,10 @@ def sim_results(outstr,star_strs,star_dates):
     return
 
 
-def prep_master(mastername):
+def prep_master(outdir,mastername):
     star_strs = dict()
     star_dates = dict()
-
+    mastername = os.path.join(outdir,mastername)
     newmaster = False
     if not os.path.exists(mastername):
         newmaster = True
@@ -157,15 +158,15 @@ def prep_master(mastername):
         sys.exit()
 
     return masterfp,star_strs, star_dates
-###
 
-if __name__ == "__main__":
 
+def parse_args():
     parser = optparse.OptionParser()
     parser.add_option("-g","--googledex",dest="googledex",default="The Googledex")
     parser.add_option("-i","--infile",dest="infile",default="newgoogledex.csv")
     parser.add_option("-f","--file",dest="datefile",default="")
-    parser.add_option("-s","--seed",dest="seed",default=None)    
+    parser.add_option("-s","--seed",dest="seed",default=None)
+    parser.add_option("-o","--outdir",dest="outdir",default=".")        
     parser.add_option("-d","--double",dest="double",default=False,action="store_true")
     parser.add_option("-m","--masterfile",dest="master",default="sim_master.simout")
     parser.add_option("-p","--priority",dest="method",default="inquad",choices=["inquad","outquad","uniform","random"])
@@ -176,7 +177,8 @@ if __name__ == "__main__":
         sys.exit()    
 
     if options.datefile != "":
-        datelist = read_datefile(options.datefile)
+        df = os.path.join(options.outdir,options.datefile)
+        datelist = read_datefile(df)
     else:
         datelist = gen_datelist(args[0],args[1],double=options.double)
 
@@ -184,18 +186,42 @@ if __name__ == "__main__":
         random.seed(int(options.seed))
         np.random.seed(int(options.seed))
 
-    masterfp,star_strs, star_dates = prep_master(options.master)
+    if not os.path.isdir(options.outdir):
+        try:
+            os.mkdir(options.outdir)
+        except Exception as e:
+            print "cannot make output directory: %s - %s" % (options.outdir,e)
+            sys.exit()
+
+    gd = os.path.join(options.outdir,options.infile)
+    if not os.path.exists(gd):
+        try:    
+            shutil.copyfile(options.infile, gd)
+        except Exception as e:
+            print "cannot copy %s to %s: %s" % (options.infile,options.outdir,e)
+            sys.exit()
+            
+    return options, datelist
+
+###
+
+if __name__ == "__main__":
+
+
+    options,datelist = parse_args()
+    
+    masterfp,star_strs, star_dates = prep_master(options.outdir,options.master)
     
     for datestr in datelist:
 
-        allnames, star_table, do_flag, stars  = ds.parseGoogledex(sheetn=options.googledex,outfn=options.infile)
+        allnames, star_table, do_flag, stars  = ds.parseGoogledex(sheetn=options.googledex,outfn=os.path.join(options.outdir,options.infile))
     
         fwhms = ns.gen_seeing()
         slowdowns = ns.gen_clouds()
 
         lastslow = 5
         lastfwhm = 15
-        otfn = "observed_targets"
+        otfn = os.path.join(options.outdir,"observed_targets")
         ot = open(otfn,"w")
         ot.close()
         observing = True
@@ -233,13 +259,21 @@ if __name__ == "__main__":
             curtime = ephem.Date(curtime)
         
         print "sun rose"
-        fn = "observed_targets"
-        if os.path.isfile(fn):
+
+        if os.path.isfile(otfn):
             try:
-                os.unlink(fn)
+                os.unlink(otfn)
             except:
-                print "cannot unlink %s" %(fn)
+                print "cannot unlink %s" %(otfn)
     if masterfp:
         masterfp.close()
-    write_sim_file_results(star_strs)
+    simoutdir = os.path.join("..","SimFiles",options.outdir)
+    if not os.path.isdir(simoutdir):
+        try:
+            os.mkdir(simoutdir)
+        except Exception as e:
+            print "cannot make output directory: %s - %s" % (simoutdir,e)
+            sys.exit()
+        
+    write_sim_file_results(star_strs,outdir=simoutdir)
 # done
