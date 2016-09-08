@@ -72,31 +72,9 @@ fp = open(fn_assess,"w")
 fp.write(out)
 fp.close()
 print out
-exstr  = "python fillin_phasebins.py -i %s " % (new_googledex)
-try:
-    output = subprocess.check_output(exstr,shell=True)
-    print output
-except:
-    pass 
-for id in ["../SimFiles","../VelsFiles/","../PlanetFitting/"]:
-    foutdir = os.path.join(id,outdir)
-    if not os.path.exists(foutdir):
-        os.mkdir(foutdir)
-    else:
-        print "%s already exists!" % (foutdir)
-
-vels = glob("../VelsFiles/TESS*")
-for vel in vels:
-    shutil.move(os.path.join("../VelsFiles/",vel),os.path.join("../VelsFiles/",outdir))
-
-pfs = glob("../PlanetFitting/TESS*")
-for pf in pfs:
-    shutil.move(os.path.join("../PlanetFitting/",pf),os.path.join("../PlanetFitting/",outdir))
-
-shutil.move(fn_assess,os.path.join("../PlanetFitting/",outdir))
-shutil.move(old_googledex,os.path.join("../SimFiles/",outdir))
-
-sims = glob("../SimFiles/*.sim")
-for sim in sims:
-    shutil.copy(os.path.join("../SimFiles/",sim),os.path.join("../SimFiles/",outdir))
-    
+#exstr  = "python fillin_phasebins.py -i %s " % (new_googledex)
+#try:
+#    output = subprocess.check_output(exstr,shell=True)
+#    print output
+#except:
+#    pass 
