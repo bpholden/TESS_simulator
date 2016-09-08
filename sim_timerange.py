@@ -25,7 +25,7 @@ if args.seed:
 else:
     seed = None
 
-outdir = prefix + "_sinnoise_" + scheme + "_noa_singlestandard_twothirds"
+outdir = prefix + "_" + scheme + "_" + "_noa_twothirds"
 
 new_googledex = "newgoogledex_" + prefix + ".csv"
 
