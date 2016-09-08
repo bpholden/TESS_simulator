@@ -55,7 +55,8 @@ exstr =  "python makevels.py -i %s -o %s " % (simdir,veldir)
 subprocess.check_output(exstr,shell=True)
 
 #../SystPy/
-exstr = "python fit_TESS_APF.py -i %s -v %s -a" % (os.path.join("../simulator/",old_googledex),veldir)
+pfdir  = os.path.join("..","PlanetFitting",outdir)
+exstr = "python fit_TESS_APF.py -i %s -v %s -o %s -a" % (os.path.join("../simulator/",old_googledex),veldir,pfdir)
 out = subprocess.check_output(exstr,shell=True,cwd="../SystPy/")
 print out
 # ../simulator/
