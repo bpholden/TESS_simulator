@@ -67,6 +67,7 @@ if os.path.exists(new_googledex):
 exstr = "python TESSAPF_assess.py -i %s -o %s -p %s" %(old_googledex,new_googledex,pfdir)
 out = subprocess.check_output(exstr,shell=True)
 fn_assess = "TESSAPF_assess_" + prefix + ".out"
+fn_assess = os.path.join(pfdir,fn_assess)
 fp = open(fn_assess,"w")
 fp.write(out)
 fp.close()
