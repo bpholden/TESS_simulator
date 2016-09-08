@@ -64,7 +64,7 @@ if os.path.exists(new_googledex):
     prev_googledex = new_googledex + ".prev"
     os.rename(new_googledex,prev_googledex)
 
-exstr = "python TESSAPF_assess.py -i %s -o %s -p ../PlanetFitting/" %(old_googledex,new_googledex)
+exstr = "python TESSAPF_assess.py -i %s -o %s -p %s" %(old_googledex,new_googledex,pfdir)
 out = subprocess.check_output(exstr,shell=True)
 fn_assess = "TESSAPF_assess_" + prefix + ".out"
 fp = open(fn_assess,"w")
