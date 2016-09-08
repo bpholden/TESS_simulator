@@ -29,7 +29,7 @@ outdir = prefix + "_" + scheme + "_" + "_noa_twothirds"
 
 new_googledex = "newgoogledex_" + prefix + ".csv"
 
-exstr = "python sim_nights.py -p %s -i %s %s %s -d" % (scheme,old_googledex,startdate,enddate)
+exstr = "python sim_nights.py -p %s -i %s %s %s -d -o " % (scheme,old_googledex,startdate,enddate,outdir)
 if seed:
     exstr += " -s %d" %(seed)
 print exstr
@@ -37,11 +37,14 @@ out = subprocess.check_output(exstr,shell=True)
 print out
 #exstr = "python make_sim_files.py"
 #subprocess.check_output(exstr,shell=True)
-exstr =  "python makevels.py"
+
+simdir = os.path.join("..","SimFiles",outdir)
+veldir = os.path.join("..","VelFiles",outdir)
+exstr =  "python makevels.py -i %s -o %s " % (simdir,veldir)
 subprocess.check_output(exstr,shell=True)
 
 #../SystPy/
-exstr = "python fit_TESS_APF.py -i %s -a" % (os.path.join("../simulator/",old_googledex))
+exstr = "python fit_TESS_APF.py -i %s -v %s -a" % (os.path.join("../simulator/",old_googledex),veldir)
 out = subprocess.check_output(exstr,shell=True,cwd="../SystPy/")
 print out
 # ../simulator/
