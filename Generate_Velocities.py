@@ -5,6 +5,7 @@ from astropy.io import ascii
 from astropy.table import Table, Column
 import scipy.constants as sc
 import re
+import os
 from consts import JD0, ECC, OMEGA
 
 def readin_data(infile):
@@ -133,9 +134,9 @@ def calc_rvs(TESSAPFdata,simdata,starname,dotrue=True,phases=[]):
 
     return Vtots,currentphases
 
-def write_vels(starname,simdata,velocities,phases):
-    filename='../VelsFiles/'+starname+'.vels'
-    
+def write_vels(starname,simdata,velocities,phases,outdir="../VelsFiles/"):
+    filename=starname+'.vels'
+    filename = os.path.join(outdir,filename)
     f = open(filename,'w')
     for k in range(0,len(simdata)):
         ph=phases[k,:].astype(str)
@@ -147,15 +148,15 @@ def write_vels(starname,simdata,velocities,phases):
 
     print 'vels file saved as: '+filename
     
-def write_sys(TESSAPFdata,starname,velname=""):
+def write_sys(TESSAPFdata,starname,velname="",outdir='../VelsFiles/'):
     loc=np.where(TESSAPFdata['star_names'] == starname)
     starmass=TESSAPFdata['mstar'][loc][0]
 
     if velname != "":
-        filename='../VelsFiles/'+velname+'.sys'
+        filename=velname+'.sys'
     else:
-        filename='../VelsFiles/'+starname+'.sys'
-    f = open(filename,'w')
+        filename=starname+'.sys'
+    f = open(os.path.join(outdir,filename),'w')
     f.write('Data { \n')
     if velname != "":
         f.write('    RV[] "'+velname+'.vels" \n' )
