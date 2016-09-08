@@ -26,8 +26,19 @@ else:
     seed = None
 
 outdir = prefix + "_" + scheme + "_" + "_noa_twothirds"
+if not os.path.isdir(outdir):
+    try:
+        os.mkdir(outdir)
+    except Exception as e:
+        print "cannot make %s: %s" % (outdir,e)
+
+old_googledex = os.path.join(outdir,"newgoogledex.csv")
+
+shutil.copyfile("../Datafiles/newgoogledex_sinnoise.csv",old_googledex)
 
 new_googledex = "newgoogledex_" + prefix + ".csv"
+
+new_googledex = os.path.join(outdir,new_googledex)
 
 exstr = "python sim_nights.py -p %s -i %s %s %s -d -o " % (scheme,old_googledex,startdate,enddate,outdir)
 if seed:
