@@ -6,6 +6,8 @@ destdir = ..
 
 srcdir = .
 
+fitdir = ../../SystPy/
+
 SRC = ExposureCalculations.py \
 	Generate_Errors.py \
 	NightSim.py \
@@ -23,9 +25,15 @@ SRC = ExposureCalculations.py \
 	consts.py \
 	TESSAPF_assess.py \
 	prep_sims.py \
-	do_sixmonths.py
+	count_planets.py \
+	sim_timerange.py
 
-install: install_src 
+FITSRC = fit_TESS_APF.py
+
+install: install_src install_fit
 
 install_src:
 	$(INSTALL) $(SRC) $(destdir)
+
+install_fit:
+	$(INSTALL) $(FITSRC) $(fitdir)
