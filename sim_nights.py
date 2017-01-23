@@ -17,7 +17,7 @@ import ExposureCalculations as ec
 import Generate_Errors as ge
 
 def compute_simulation(curtime,result,star,apf_obs,slowdowns,fwhms,star_tab):
-    actel = ns.compute_el(curtime,star,apf_obs)
+    actel,actaz = ns.compute_elaz(curtime,star,apf_obs)
     actslow, actfwhm = ns.rand_obs_sample(slowdowns,fwhms)
     if actslow < 0.3:
         actslow = 0.3
@@ -243,12 +243,12 @@ if __name__ == "__main__":
                 for i in range(0,int(result['NEXP'])):
                     (curtime,lastfwhm,lastslow,outstr) = compute_simulation(curtime,result,stars[idx],apf_obs,slowdowns,fwhms,star_table[idx])
                     sim_results(outstr,star_strs,star_dates)
+                    print outstr
+                    masterfp.write("%s\n" % (outstr))
                     
                 ot = open(otfn,"a+")
                 ot.write("%s\n" % (result["SCRIPTOBS"]))
                 ot.close()
-                print outstr
-                masterfp.write("%s\n" % (outstr))
             else:
                 curtime += 2100./86400 # close for lack of target
                 lastslow = 5

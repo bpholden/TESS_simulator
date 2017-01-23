@@ -83,11 +83,12 @@ def rand_obs_sample(slows,fwhms):
     findx = np.random.randint(0,lf)
     return slows[sindx], fwhms[findx]
 
-def compute_el(curtime,star,apf_obs):
+def compute_elaz(curtime,star,apf_obs):
     apf_obs.date = curtime
     star.compute(apf_obs)
     actel = np.degrees(star.alt)
-    return actel
+    actaz = np.degrees(star.az)
+    return actel, actaz
 
 
 def checkdate(datestr):

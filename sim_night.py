@@ -15,7 +15,7 @@ import os
 import NightSim as ns
 
 def compute_simulation(curtime,result,star,apf_obs,slowdowns,fwhms,jitter,outfp):
-    actel = ns.compute_el(curtime,star,apf_obs)
+    actel,actaz = ns.compute_el(curtime,star,apf_obs)
     actslow, actfwhm = ns.rand_obs_sample(slowdowns,fwhms)
     actfwhm = ns.gen_seeing_el(actfwhm,actel)
     lastfwhm = actfwhm

@@ -26,7 +26,8 @@ SRC = ExposureCalculations.py \
 	TESSAPF_assess.py \
 	prep_sims.py \
 	count_planets.py \
-	sim_timerange.py
+	sim_timerange.py \
+	sim_timerange_wbreakpoints.py \
 
 FITSRC = fit_TESS_APF.py
 

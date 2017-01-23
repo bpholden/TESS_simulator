@@ -239,6 +239,7 @@ def plot_planets(k,sname,initphases,vmag,rplanets,mplanets,planetids,veloff,writ
         plt.close()
         if writefit:
             ostr = "%f %f %f %.4g %.4g %.4g %d" % (fperiod,K,err_K,k.getElement(i+1,SystPy.K_MASS)*317.83,mads[i+1,SystPy.K_MASS]*317.83,rplanets[i],len(phases))
+            # period (days) K (m/s) err_K (m/s) planet mass (M_earth) error (M_earth) R (R_earth) #vs #phase1 #phase2 #phase3 #phase4 #phase5
             bstr = ""
             for i in range(0,len(ninbins)):
                 bstr += " %d" % ninbins[i]
