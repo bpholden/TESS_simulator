@@ -177,7 +177,7 @@ def plot_planets(k,sname,initphases,vmag,rplanets,mplanets,planetids,veloff,writ
         outfp = open(outname,"w")
         outfp.write(otxt+"\n")
 
-    kl = SystPy.bootstrap(k, 500, 0)
+    kl = SystPy.MCMC(k)
     bsname = os.path.join(outdir,sname + ".kl")
 #    SystPy.KLSave(kl, bsname)
     stds = kl.getElementsStats(SystPy.K_STAT_STDDEV)
