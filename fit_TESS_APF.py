@@ -179,7 +179,7 @@ def plot_planets(k,sname,initphases,vmag,rplanets,mplanets,planetids,veloff,writ
 
     kl = SystPy.MCMC(k)
     bsname = os.path.join(outdir,sname + ".kl")
-#    SystPy.KLSave(kl, bsname)
+    SystPy.KLSave(kl, bsname)
     stds = kl.getElementsStats(SystPy.K_STAT_STDDEV)
     meds = kl.getElementsStats(SystPy.K_STAT_MEDIAN)
     mads = 1.4826*kl.getElementsStats(SystPy.K_STAT_MAD)    
