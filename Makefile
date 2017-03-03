@@ -29,7 +29,8 @@ SRC = ExposureCalculations.py \
 	sim_timerange.py \
 	sim_timerange_wbreakpoints.py \
 
-FITSRC = fit_TESS_APF.py
+FITSRC = fit_TESS_APF.py \
+	mcmc_velfits.py
 
 install: install_src install_fit
 
