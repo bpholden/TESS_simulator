@@ -81,9 +81,9 @@ def getpriority_inquad(starlist,data,currentJD,standard=False):
     reallyinphase = ((currentphase > FIRSTSTART) & (currentphase < FIRSTEND)) | ((currentphase > SECONDSTART) & (currentphase < SECONDEND)) 
 
     
-    #Add 1 to priorities if planet is <2 M_earth or if period > 30d
-    priority[data['minradius'] < 2] += 1
-    priority[data['foldperiod'] > 30 ] += 1
+    #Add 1 to priorities if planet is <4 M_earth or if period > 30d
+    priority[data['minradius'] < 4] += 1
+#    priority[data['foldperiod'] > 30 ] += 1
     priority[reallyinphase] += 1
     priority += data['pri_offset']
 
@@ -137,9 +137,9 @@ def getpriority_outquad(starlist,data,currentJD,standard=False):
     priority[data['initialphase']== -1] = 7
         
     
-    #Add 1 to priorities if planet is <2 M_earth or if period > 30d
-    priority[data['minradius'] < 2] += 1
-    priority[data['foldperiod'] > 30 ] += 1
+    #Add 1 to priorities if planet is <4 M_earth or if period > 30d
+    priority[data['minradius'] < 4] += 1
+#    priority[data['foldperiod'] > 30 ] += 1
     priority += data['pri_offset']
 
     return priority,currentphase
@@ -183,9 +183,9 @@ def getpriority_uniform_old(starlist,data,currentJD,standard=False):
     priority[data['initialphase']== -1] = 7
         
     
-    #Add 1 to priorities if planet is <2 M_earth or if period > 30d
-    priority[data['minradius'] < 2] += 1
-    priority[data['foldperiod'] > 30 ] += 1
+    #Add 1 to priorities if planet is <4 M_earth or if period > 30d
+    priority[data['minradius'] < 4] += 1
+#    priority[data['foldperiod'] > 30 ] += 1
     priority += data['pri_offset']
 
     return priority,currentphase
@@ -228,7 +228,8 @@ def getpriority_uniform(starlist,data,currentJD,star_dates,standard=False):
                 priority[i] = 1
     
     #Add 1 to priorities if planet is <2 M_earth or if period > 30d
-    priority[data['minradius'] < 2] += 1
+    priority[data['minradius'] < 4] += 1
+#    priority[data['foldperiod'] > 30 ] += 1
     priority += data['pri_offset']
 
     return priority,currentphase
