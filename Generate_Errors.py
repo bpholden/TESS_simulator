@@ -98,7 +98,7 @@ def compute_real_uncertainty(i2counts,cols,star_jitter):
     true = precision**2
     true += star_jitter**2
     true = np.sqrt(true)
-    true += 1.0
+    true += 1.5 # floor from Fig. 4 of Burt et al. 2015
     dev = true*np.random.normal(size=1)
     
     return precision, dev, true
