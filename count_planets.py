@@ -9,6 +9,8 @@ import sys
 def parse_fit(infile):
     masses = []
     errs = []
+    ks = []
+    errks = []
     rplanet = []
     nobs = []
     periods = []
@@ -23,12 +25,14 @@ def parse_fit(infile):
             continue
         else:
             periods.append(d[0])
+            ks.append(d[1])
+            errks.append(d[2])
             masses.append(d[3])
             errs.append(d[4])
             rplanet.append(d[5])
             nobs.append(d[6])
             
-    return masses, errs, rplanet, nobs, periods
+    return masses, errs, rplanet, nobs, periods, ks, errks
 
 def findfiles(indir):
     bfits = glob(indir + "/" + "TESSAPF*binned.fit")
@@ -45,13 +49,13 @@ def compile_data(indir,outfp,TESSAPFdata):
         m = re.search("(TESSAPF\d+)binned",fn)
         sname = m.group(1)
         truemass = TESSAPFdata['true_mass'][(TESSAPFdata['star_names'] == sname) & (TESSAPFdata['detected']=='TRUE')]
-        masses, errs, rplanets, nobs, periods = parse_fit(fn)
+        masses, errs, rplanets, nobs, periods, ks, errks = parse_fit(fn)
         np = len(masses)
         if int(nobs[0]) > 4:
             ntot += 1
         for i in range(0,np):
             ostr = "%s.%d " % (sname,(i+1))
-            ostr += "%s %s %f %s %s %s\n" % (masses[i],errs[i],truemass[i],rplanets[i],periods[i],nobs[i])
+            ostr += "%s %s %f %s %s %s %s %s\n" % (masses[i],errs[i],truemass[i],rplanets[i],periods[i],nobs[i],ks[i],errks[i])
             outfp.write(ostr)
             cmass = float(masses[i])
             csn = cmass / float(errs[i])
@@ -72,7 +76,7 @@ parser.add_option("-t","--tessapf",dest="mfn",default='../Datafiles/TESSAPF_AWMa
 (options, args) = parser.parse_args()
 try:
     outfp = open(options.outfile,"w")
-    hdr = "# starid mass(earths) err(earths) true_mass(earths) radius(earths) period(days) n_obs\n"
+    hdr = "# starid mass(earths) err(earths) true_mass(earths) radius(earths) period(days) n_obs K(m/s) err(m/s) \n"
     outfp.write(hdr)
     outfp.write("#" + options.indir+"\n")
 except Exception, e:
