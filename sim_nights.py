@@ -240,8 +240,9 @@ if __name__ == "__main__":
                 
                 curtime += 70./86400 # acquisition time
                 idx, = np.where(star_table['starname'] == result['NAME'])
+                indx = idx[0]
                 for i in range(0,int(result['NEXP'])):
-                    (curtime,lastfwhm,lastslow,outstr) = compute_simulation(curtime,result,stars[idx],apf_obs,slowdowns,fwhms,star_table[idx])
+                    (curtime,lastfwhm,lastslow,outstr) = compute_simulation(curtime,result,stars[indx],apf_obs,slowdowns,fwhms,star_table[indx])
                     sim_results(outstr,star_strs,star_dates)
                     print outstr
                     masterfp.write("%s\n" % (outstr))
