@@ -128,6 +128,7 @@ def calc_rvs(TESSAPFdata,simdata,starname,dotrue=True,phases=[]):
     Vtots=np.empty(len(simdata))
     for l in range (0,len(simdata)):
         Vtots[l]=Vinsts[l,:].sum()+simdata['totunc'][l]
+    # RVs are relative
     Vtots -= Vtots[0]
 #    print('Total instantaneous RVs of the star at specified JD:')
 #    print(Vtots)
