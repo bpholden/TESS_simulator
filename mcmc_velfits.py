@@ -41,7 +41,7 @@ def parse_options():
 
     parser = optparse.OptionParser()
     parser.add_option("-a","--all",dest="all",default=False,action="store_true")
-    parser.add_option("-i","--infile",dest="infile",default="../Datafiles/newgoogledex.csv")
+    parser.add_option("-i","--infile",dest="infile",default="../Datafiles/newgoogledex_sinnoise.csv")
     parser.add_option("-v","--veldir",dest="veldir",default="../VelsFiles/")
     parser.add_option("-o","--outdir",dest="outdir",default="../PlanetFitting/")        
     parser.add_option("-t","--tessapf",dest="mfn",default='../Datafiles/TESSAPF_AWMasses_prec_phase.csv')
