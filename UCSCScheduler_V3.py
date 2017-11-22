@@ -36,7 +36,7 @@ MAX_EXPTIME = 1200.
 MIN_EXPTIME = 300.
 MIN_SHUTTERTIME = 60
 MAX_I2 = 40000
-MIN_I2 = 500
+MIN_I2 = 2000
 MAX_EXPMETER = 2e9
 
 
@@ -199,7 +199,7 @@ def parseGoogledex(sheetn="FakeGoogledex",certificate='UCSC Dynamic Scheduler-5b
     # Downloading all the values is going slowly.
     # Try to only have to load this once a day
     try:
-        data = ascii.read(os.path.join(os.getcwd(),outfn))
+        alldata = ascii.read(os.path.join(os.getcwd(),outfn))
     except IOError:
         apflog( "Starting Googledex parse",echo=True)
         worksheet = get_spreadsheet(sheetn=sheetn,certificate=certificate)
@@ -208,14 +208,19 @@ def parseGoogledex(sheetn="FakeGoogledex",certificate='UCSC Dynamic Scheduler-5b
         #time = (datetime.now() - start).total_seconds()
         #print "Loaded Values. Took {0:f} seconds.".format(time)
         ofn = os.path.join(os.getcwd(),"newgoogledex.csv")
-        data = write_as_table(full_codex, ofn)
+        alldata = write_as_table(full_codex, ofn)
         
     
+
+    good = (alldata['precision'] > 0.0) & (alldata['vmag'] < 11) | (alldata['comments'] == 'B star')
+    data = alldata[good]
+
     names = data['starname']
     do_flag = []
     stars = []
     ras = []
     decs = []
+
     # Build the star table to return to 
     for ind in range(0,len(data)):
         star = ephem.FixedBody()
