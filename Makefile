@@ -28,9 +28,13 @@ SRC = ExposureCalculations.py \
 	count_planets.py \
 	sim_timerange.py \
 	sim_timerange_wbreakpoints.py \
+	fit_APF_TESS_radvel.py \
+	mcmc_radvel_sims.py \
+	make_radvel_catalogs.py \
 
 FITSRC = fit_TESS_APF.py \
-	mcmc_velfits.py
+	mcmc_velfits.py \
+	timedependent_mcmc_velfits.py
 
 install: install_src install_fit
 
