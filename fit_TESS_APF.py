@@ -1,3 +1,10 @@
+import re
+import sys
+import optparse
+import os.path
+from glob import glob
+import re
+
 from astropy.io import ascii
 from astropy.table import Table
 import numpy as np
@@ -5,12 +12,7 @@ import scipy as sp
 import scipy.constants as sc
 import scipy.optimize as op
 import matplotlib.pyplot as plt
-import re
-import sys
-import optparse
-import os.path
-from glob import glob
-import re
+
 sys.path.append("../simulator/")
 import getpriority
 import Generate_Velocities
@@ -138,8 +140,6 @@ def add_planets(k,TESSAPFdata,planets,veloff):
 
 def fit_dates_vels(dates,vels,errs):
 
-
-
     odates = dates - np.min(dates)
     try:
         pcoeff, cov = np.polyfit(odates,vels,1,w=1.0/errs**2,cov=True)
@@ -161,7 +161,6 @@ def checknumvels(invels,sname,outdir="../PlanetFitting"):
     return True
 
 def plot_planets(k,sname,initphases,vmag,rplanets,mplanets,planetids,veloff,writefit=False,veldir="../VelsFiles",outdir="../PlanetFitting"):
-
     
     fn = sname + ".vels"
     indata = readin_velsfile(os.path.join(veldir,fn))
@@ -177,9 +176,8 @@ def plot_planets(k,sname,initphases,vmag,rplanets,mplanets,planetids,veloff,writ
         outfp = open(outname,"w")
         outfp.write(otxt+"\n")
 
-    kl = SystPy.MCMC(k)
-    bsname = os.path.join(outdir,sname + ".kl")
-    SystPy.KLSave(kl, bsname)
+    kl = SystPy.MCMC(k,nChains = 4, rStop = 1.05)
+
     stds = kl.getElementsStats(SystPy.K_STAT_STDDEV)
     meds = kl.getElementsStats(SystPy.K_STAT_MEDIAN)
     mads = 1.4826*kl.getElementsStats(SystPy.K_STAT_MAD)    
@@ -287,58 +285,58 @@ def make_periodogram(k,sname,outdir="../PlanetFitting"):
     plt.savefig(pname, bbox_inches='tight')
     plt.close()
 
+if __name__ == "__main__":
 
+    snames,gdfn,mfn,veldir,outdir = parse_options()
 
-snames,gdfn,mfn,veldir,outdir = parse_options()
+    gd = ascii.read(gdfn)
+    TESSAPFdata=ascii.read(mfn,format='csv')
+    for sname in snames:
 
-gd = ascii.read(gdfn)
-TESSAPFdata=ascii.read(mfn,format='csv')
-for sname in snames:
+        sfn = sname + ".sys"
+        vfn = sname + ".vels"
+        newvels = True
 
-    sfn = sname + ".sys"
-    vfn = sname + ".vels"
-    newvels = True
+        invels = readin_velsfile(os.path.join(veldir,vfn))
+        ddates,dphases, dvels, derrs, di2sums = bin_phase_dates(invels["jd"],invels["phases"],invels['velocity'],invels["int unc"],invels["I2 counts"])
+        bvfn = sname + "binned"
+        ascii.write([ddates,dvels,derrs,di2sums,dphases], os.path.join(veldir,bvfn+".vels"),format="no_header")
+        Generate_Velocities.write_sys(TESSAPFdata,sname,velname=bvfn,outdir=veldir)
 
-    invels = readin_velsfile(os.path.join(veldir,vfn))
-    ddates,dphases, dvels, derrs, di2sums = bin_phase_dates(invels["jd"],invels["phases"],invels['velocity'],invels["int unc"],invels["I2 counts"])
-    bvfn = sname + "binned"
-    ascii.write([ddates,dvels,derrs,di2sums,dphases], os.path.join(veldir,bvfn+".vels"),format="no_header")
-    Generate_Velocities.write_sys(TESSAPFdata,sname,velname=bvfn,outdir=veldir)
-
-    newvels = checknumvels(invels,sname,outdir=outdir)
+        newvels = checknumvels(invels,sname,outdir=outdir)
     
-    if len(dvels) > 4 and newvels:
-        k=SystPy.Kernel()
-        k.setEpoch(JD0)
-        ddir =veldir
-        k.addDataFile(sfn, directory=ddir)
+        if len(dvels) > 4 and newvels:
+            k=SystPy.Kernel()
+            k.setEpoch(JD0)
+            ddir =veldir
+            k.addDataFile(sfn, directory=ddir)
 
-        planets, = np.where((TESSAPFdata['star_names'] == sname) & (TESSAPFdata['detected'] == "TRUE"))
-        # planet masses are in earth masses, Systemic likes Jupiters
-        #mearth = 5.9722e24
-        #mjup = 1.898e27
-        mratio = 317.83
-        TESSAPFdata['est_mass'] /= mratio
+            planets, = np.where((TESSAPFdata['star_names'] == sname) & (TESSAPFdata['detected'] == "TRUE"))
+            # planet masses are in earth masses, Systemic likes Jupiters
+            #mearth = 5.9722e24
+            #mjup = 1.898e27
+            mratio = 317.83
+            TESSAPFdata['est_mass'] /= mratio
 
-        add_planets(k,TESSAPFdata,planets,gd['vel_offset'][gd['starname'] == sname])
+            add_planets(k,TESSAPFdata,planets,gd['vel_offset'][gd['starname'] == sname])
     
-        #print k.getElements()
-        print "%s: RMS of fit %f" % (sname,k.getRms())
+            #print k.getElements()
+            print "%s: RMS of fit %f" % (sname,k.getRms())
 
-        plot_planets(k,sname,TESSAPFdata['phase'][planets],TESSAPFdata['vmag'][planets],TESSAPFdata['rplanet'][planets],TESSAPFdata['true_mass'][planets],TESSAPFdata['Index'][planets],gd['vel_offset'][gd['starname'] == sname],veldir=veldir,outdir=outdir)
-        # feature request, spit out periodogram
-        make_periodogram(k,sname,outdir=outdir)
+            plot_planets(k,sname,TESSAPFdata['phase'][planets],TESSAPFdata['vmag'][planets],TESSAPFdata['rplanet'][planets],TESSAPFdata['true_mass'][planets],TESSAPFdata['Index'][planets],gd['vel_offset'][gd['starname'] == sname],veldir=veldir,outdir=outdir)
+            # feature request, spit out periodogram
+            make_periodogram(k,sname,outdir=outdir)
         # now do the binned velocities
 
-        k=SystPy.Kernel()
-        k.setEpoch(JD0)
-        ddir =veldir
-        bsfn = bvfn + ".sys"
-        k.addDataFile(bsfn, directory=ddir)
-        add_planets(k,TESSAPFdata,planets,gd['vel_offset'][gd['starname'] == sname])
+            k=SystPy.Kernel()
+            k.setEpoch(JD0)
+            ddir =veldir
+            bsfn = bvfn + ".sys"
+            k.addDataFile(bsfn, directory=ddir)
+            add_planets(k,TESSAPFdata,planets,gd['vel_offset'][gd['starname'] == sname])
     
-        #print k.getElements()
-        print "%s: RMS of fit %f" % (sname,k.getRms())
+            #print k.getElements()
+            print "%s: RMS of fit %f" % (sname,k.getRms())
 
-        plot_planets(k,bvfn,TESSAPFdata['phase'][planets],TESSAPFdata['vmag'][planets],TESSAPFdata['rplanet'][planets],TESSAPFdata['true_mass'][planets],TESSAPFdata['Index'][planets],gd['vel_offset'][gd['starname'] == sname],writefit=True,veldir=veldir,outdir=outdir)
+            plot_planets(k,bvfn,TESSAPFdata['phase'][planets],TESSAPFdata['vmag'][planets],TESSAPFdata['rplanet'][planets],TESSAPFdata['true_mass'][planets],TESSAPFdata['Index'][planets],gd['vel_offset'][gd['starname'] == sname],writefit=True,veldir=veldir,outdir=outdir)
         
