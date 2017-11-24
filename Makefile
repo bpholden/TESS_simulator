@@ -27,6 +27,7 @@ SRC = ExposureCalculations.py \
 	prep_sims.py \
 	count_planets.py \
 	sim_timerange.py \
+	sim_timerange_radvel.py \
 	sim_timerange_wbreakpoints.py \
 	fit_APF_TESS_radvel.py \
 	mcmc_radvel_sims.py \
