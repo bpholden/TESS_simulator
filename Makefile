@@ -32,6 +32,8 @@ SRC = ExposureCalculations.py \
 	fit_APF_TESS_radvel.py \
 	mcmc_radvel_sims.py \
 	make_radvel_catalogs.py \
+	timedependent_mcmc_radvelfits.py \
+	Radvel_MCMC.py \
 
 FITSRC = fit_TESS_APF.py \
 	mcmc_velfits.py \
