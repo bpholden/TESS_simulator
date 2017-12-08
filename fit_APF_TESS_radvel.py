@@ -165,6 +165,8 @@ def initialize_model(planets,TESSAPFdata,addextra=False):
 
 def make_like(mod,invels,planets,addextra=False):
     like = radvel.likelihood.RVLikelihood(mod, invels['time'], invels['mnvel'], invels['errvel'])
+    gamma_guess = (invels['mnvel'].max() + invels['mnvel'].min())/2.
+    
     like.params['gamma'] = radvel.Parameter(value=0.01)
     like.params['jit']= radvel.Parameter(value=3.)
 
@@ -193,7 +195,7 @@ def init_posterior(like,planets,addextra=False):
 
     post = radvel.posterior.Posterior(like)
     post.priors += [radvel.prior.Gaussian( 'jit', np.log(3), 0.5)]
-    post.priors += [radvel.prior.Gaussian( 'gamma', 0, 10)]
+    post.priors += [radvel.prior.Gaussian( 'gamma', float(like.params['gamma'].value), 30)]
     n = 1
     ntot = len(planets)
     if addextra:
