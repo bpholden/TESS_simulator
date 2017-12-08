@@ -199,12 +199,12 @@ def init_posterior(like,planets,addextra=False):
     n = 1
     ntot = len(planets)
     if addextra:
-        ntot = ntot = 1
+        ntot = ntot + 1
         
-    for idx in range(0,ntot):
-        n = idx + 1
-        post.priors += [radvel.prior.Gaussian( 'k%d' % (n), np.log(5), 10)]
-        
+#    for idx in range(0,ntot):
+#        n = idx + 1
+#        post.priors += [radvel.prior.Gaussian( 'k%d' % (n), np.log(5), 10)]
+    post.priors += [radvel.prior.PositiveKPrior(ntot)]
     return post
 
 def plot_results(post,chains,outdir,sname):
