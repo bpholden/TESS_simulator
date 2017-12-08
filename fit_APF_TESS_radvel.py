@@ -142,7 +142,22 @@ def initialize_model(planets,TESSAPFdata,addextra=False):
         params['w%d' % (n)] = radvel.Parameter(value=np.pi/2.)
         params['k%d' % (n)] = radvel.Parameter(value=2.)
         
-    mod = radvel.RVModel(params, time_base=time_base)
+    nparams = params.basis.from_cps(params,'per tc ecosw esinw k') # transform to new basis (for less biased fits?)
+    n = 1
+    for idx in planets:
+        del nparams['e%d' % (n)]
+#        del nparams['k%d' % (n)]
+        del nparams['w%d' % (n)]
+        del nparams['tp%d' % (n)]
+        n = n + 1
+    if addextra:
+        del nparams['e%d' % (n)]
+#        del nparams['k%d' % (n)]
+        del nparams['w%d' % (n)]
+        del nparams['tp%d' % (n)]
+    # new basis
+    
+    mod = radvel.RVModel(nparams, time_base=time_base)
     mod.params['dvdt'] = radvel.Parameter(value=0.0)
     mod.params['curv'] = radvel.Parameter(value=0.0)
     return mod
@@ -154,16 +169,18 @@ def make_like(mod,invels,planets,addextra=False):
     like.params['jit']= radvel.Parameter(value=3.)
 
     for n in range(1,like.params.num_planets+1):
-        like.params['w%d' % (n)].vary = True
-        like.params['e%d' % (n)].vary = False
+        like.params['ecosw%d' % (n)].vary = False
+        like.params['esinw%d'% (n)].vary = False
         like.params['per%d' % (n)].vary = False
-        like.params['tp%d' % (n)].vary = False
+        like.params['tc%d' % (n)].vary = False
+
 
     if addextra:
         n = like.params.num_planets
-        like.params['e%d' % (n)].vary = True
+        like.params['ecosw%d' % (n)].vary = True
+        like.params['esinw%d'% (n)].vary = True
         like.params['per%d' % (n)].vary = True
-        like.params['tp%d' % (n)].vary = True
+        like.params['tc%d' % (n)].vary = True
         
     like.params['curv'].vary = False
     like.params['jit'].vary = True
@@ -228,21 +245,16 @@ def mcmc_planets(post,outdir,sname,mstars,addextra=False):
     err_Ms = []
     # Get quantiles and update posterior object
     post_summary=chains.quantile([0.159, 0.5, 0.841])
-    for n in range(1,post.params.num_planets+1):
-
-        post_summary['Mpsini%d' % (n)] = radvel.utils.Msini(post_summary['k%d' % (n)],post.params['per%d' % (n)].value,mstars[0],0.)
-        if writefit:
-            Ks.append(post_summary['k%d' % (n)][0.5])
-            err_Ks.append(( post_summary['k%d' % (n)][0.841] - post_summary['k%d' % (n)][0.159]) / 2.)
-            Ms.append(post_summary['Mpsini%d' % (n)][0.5])
-            err_Ms.append(( post_summary['Mpsini%d' % (n)][0.841] - post_summary['Mpsini%d' % (n)][0.159]) / 2.)
-
+    c = 1
     if addextra:
-        n = post.params.num_planets 
-        post_summary['Mpsini%d' % (n)] = radvel.utils.Msini(post_summary['k%d' % (n)],post.params['per%d' % (n)].value,mstars[0],0.)
+        c = 2
+    for n in range(1,post.params.num_planets+c):
+        post_summary['Mpsini%d' % (n)] = radvel.utils.Msini((post_summary['k%d' % (n)]),post.params['per%d' % (n)].value,mstars[0],0.)
         if writefit:
-            Ks.append(post_summary['k%d' % (n)][0.5])
-            err_Ks.append(( post_summary['k%d' % (n)][0.841] - post_summary['k%d' % (n)][0.159]) / 2.)
+            Ks.append((post_summary['k%d' % (n)][0.5]))
+            sigK = ( post_summary['k%d' % (n)][0.841] - post_summary['k%d' % (n)][0.159] ) / 2.
+            sigK = sigK #* np.exp(post_summary['logk%d' % (n)][0.5])
+            err_Ks.append(sigK)
             Ms.append(post_summary['Mpsini%d' % (n)][0.5])
             err_Ms.append(( post_summary['Mpsini%d' % (n)][0.841] - post_summary['Mpsini%d' % (n)][0.159]) / 2.)
 
