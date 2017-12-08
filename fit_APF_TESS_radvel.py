@@ -261,6 +261,7 @@ def mcmc_planets(post,outdir,sname,mstars,addextra=False):
             err_Ms.append(( post_summary['Mpsini%d' % (n)][0.841] - post_summary['Mpsini%d' % (n)][0.159]) / 2.)
 
 
+
     print "Saving output files..."
     saveto = os.path.join(outdir, sname+'_post_summary.csv')
     post_summary.to_csv(saveto, sep=',')
@@ -299,7 +300,7 @@ if __name__ == "__main__":
             like = make_like(mod,invels,planets,addextra=addextra)
             post = init_posterior(like,planets,addextra=addextra)
             post = radvel.fitting.maxlike_fitting(post, verbose=False)
-
+            print post
             chains,Ks,err_Ks,Ms,err_Ms = mcmc_planets(post,outdir,sname,TESSAPFdata['mstar'][planets],addextra=addextra)
 #            write_output(post,TESSAPFdata['phase'][planets],TESSAPFdata['vmag'][planets],TESSAPFdata['rplanet'][planets],TESSAPFdata['true_mass'][planets],TESSAPFdata['Index'][planets],gd['vel_offset'][gd['starname'] == sname],writefit=True,veldir=veldir,outdir=outdir)
             plot_results(post,chains,outdir,sname)
