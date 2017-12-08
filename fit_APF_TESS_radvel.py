@@ -40,7 +40,7 @@ def parse_options():
     parser.add_option("-v","--veldir",dest="veldir",default="../VelsFiles/")
     parser.add_option("-o","--outdir",dest="outdir",default="../PlanetFitting/")        
     parser.add_option("-t","--tessapf",dest="mfn",default='../Datafiles/TESSAPF_AWMasses_prec_phase.csv')
-    parser.add_option("-e","--extra",dest=extra,default=False)
+    parser.add_option("-e","--extra",dest="extra",default=False)
     (options, args) = parser.parse_args()
     if len(args) < 1 and not options.all:
         print "needs a star name"
