@@ -77,7 +77,7 @@ if phase == "vels" or phase == None:
 if phase == "fit" or phase == None:
     #../SystPy/
     exstr = "python fit_APF_TESS_radvel.py -i %s -v %s -o %s -a" % (os.path.join("../simulator/",fpold_googledex),veldir,pfdir)
-    out = subprocess.check_output(exstr,shell=True,cwd="../SystPy/")
+    out = subprocess.check_output(exstr,shell=True)
     print out
     # ../simulator/
 
