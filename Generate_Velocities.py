@@ -21,6 +21,32 @@ def readin_data(infile):
      
     return simdata
 
+def calc_K(TESSAPFdata,starname,dotrue=True):
+    
+    if dotrue:
+        loc=np.where(TESSAPFdata['star_names'] == starname)
+        truemasses=TESSAPFdata['true_mass'][loc]
+        #Pull out the planetary system info from the TESSAPF table
+    else:
+        loc=np.where((TESSAPFdata['star_names'] == starname) & (TESSAPFdata['detected'] == "TRUE"))
+        truemasses=TESSAPFdata['est_mass'][loc]
+        
+    periods=TESSAPFdata['period'][loc]
+    initphases=TESSAPFdata['phase'][loc]
+    cosi=TESSAPFdata['cosi'][loc][0]    #same for every planet
+    sini=np.sqrt(1-(cosi**2.))    #same for every planet
+    mstar=TESSAPFdata['mstar'][loc][0]  #same for every planet (duh)
+
+    #Convert to mks units
+    period_sec=periods*86400.                   #days -> seconds
+    truemasses=truemasses*5.97237*(10.**24.)  #Earth mass -> kg
+    mstar= mstar*1988500*(10.**24.)           #Solar mass -> kg
+
+    #Calulate the RV amplitude (K) of each planet
+    K=((2*sc.pi*sc.G/period_sec)**(1./3.)) * (truemasses/((mstar+truemasses)**(2./3.)))
+
+    return K
+
 def calc_predrvs(TESSAPFdata,simdates,starname,dotrue=True):
 
     if dotrue:
