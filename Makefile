@@ -30,6 +30,7 @@ SRC = ExposureCalculations.py \
 	sim_timerange_radvel.py \
 	sim_timerange_wbreakpoints.py \
 	fit_APF_TESS_radvel.py \
+	fit_APF_TESS_EXOFAST.py \
 	mcmc_radvel_sims.py \
 	make_radvel_catalogs.py \
 	timedependent_mcmc_radvelfits.py \
