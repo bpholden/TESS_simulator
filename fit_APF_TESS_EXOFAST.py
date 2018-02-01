@@ -66,17 +66,25 @@ def parse_options():
 
     return snames,options.infile,options.mfn,veldir,options.outdir,options.extra
 
+def write_pro(estrs,fitname="fit_TESSAPF.pro"):
+    
+
+    fitfp = open(fitname,"a+")
+
+    fitfp.write("pro fit_TESSAPF,debug=debug\n")
+    fitfp.write("\nmaxsteps=50000\nnthin=2\n")
+    fitfp.writelines(estrs)
+    fitfp.write("end\n")
+    
+    return
+
+
 def initialize_model(sname,planets,TESSAPFdata,addextra=False):
     time_base = 2458362.5
 
     priorname = sname + ".priors"
     priorfp = open(priorname,"w+")
-    fitname = "fit_" + sname + ".pro"
-    fitfp = open(fitname,"w+")
-
-    fitfp.write("pro fit_" + sname + ",debug=debug\n")
-    fitfp.write("\nmaxsteps=100000\nnthin=2\n")
-
+    
     nplan = len(planets)
     if addextra:
         nplan = nplan + 1
@@ -91,11 +99,8 @@ def initialize_model(sname,planets,TESSAPFdata,addextra=False):
         falses +=  "0,"
     trues = trues.rstrip(",")
     falses = falses.rstrip(",")
-    execstr = execstr + "circular=[%s],fitrv=[%s]" % (trues,trues)
-    execstr = execstr + ",debug=debug"
-    fitfp.write(execstr + "\n")
-    fitfp.write("\nend\n")
-    fitfp.close()
+    execstr = execstr + "circular=[%s],fitrv=[%s],fittran=[%s]," % (trues,trues,falses)
+    execstr = execstr + "debug=debug\n"
     n = 0
     ks = Generate_Velocities.calc_K(TESSAPFdata,sname)
     
@@ -119,8 +124,6 @@ def initialize_model(sname,planets,TESSAPFdata,addextra=False):
         
     priorfp.close()
 
-    execstr = "idl -e '%s'" %(fitname)
-
     return execstr
 
 
@@ -135,9 +138,10 @@ if __name__ == "__main__":
     #mjup = 1.898e27
     mratio = 317.83
     TESSAPFdata['est_mass'] /= mratio
-            
+    estrs = []
     for sname in snames:
 
         planets, = np.where((TESSAPFdata['star_names'] == sname) & (TESSAPFdata['detected'] == "TRUE"))
         estr = initialize_model(sname,planets,TESSAPFdata,addextra=addextra)
-        print ( estr )
+        estrs.append(estr)
+    write_pro(estrs)
