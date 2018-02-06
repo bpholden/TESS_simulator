@@ -264,7 +264,38 @@ def getpriority_random(starlist,data,currentJD,standard=False):
     return priority,currentphase
 
 
-def getpriority(starlist,data,currentJD,star_dates,standard=False,method="inquad"):
+def getpriority_hour(starlist,data,currentJD,lst,standard=False):
+    """Takes in a list of strings (starlist), an astropy Table with the correct columns, and a specific JD (currentJD), then computes the priorities and RV phases of all the stars in starlist, returning them at the end of the function.
+    starlist - a list of strings or an astropy Table Column of strings
+    data - an astropy Table with all of the needed columns, frequently known as the googledex (ahem)
+    currentJD - the Julian Date as a float that the phases and priorities will be computed for. 
+    """
+#
+####################################################################################
+
+
+    nstars=len(data)
+
+    hourangle = np.abs(lst - (data['ra']*180./np.pi)/15.)
+    hourangle = np.abs(hourangle)
+    args = np.argsort(hourangle)[::-1]
+    #Define new priority array that will contain each star's priority at t=JD
+    ps=np.arange(0,len(data))
+    priority = np.zeros(len(data),dtype=int)
+    priority[args] += ps
+    #Figure out where in the 0:1 RV phase curve each star is based on the time since JD0 and the period of the planet that is being used to set the priority
+    currentphase = compute_currentphase(currentJD,data['foldperiod'],data['initialphase'])
+    if standard:
+        priority *= 0
+        priority[data['initialphase']== -1] = 10.
+        return priority,currentphase
+    else:
+        priority[data['initialphase']== -1] = 0
+ 
+    return priority,currentphase
+
+
+def getpriority(starlist,data,currentJD,star_dates,lst,standard=False,method="inquad"):
     if method == "uniform":
         priority,currentphase = getpriority_uniform(starlist,data,currentJD,star_dates,standard=standard)
         return priority,currentphase
@@ -273,6 +304,9 @@ def getpriority(starlist,data,currentJD,star_dates,standard=False,method="inquad
         return priority,currentphase
     if method == "random":
         priority,currentphase = getpriority_random(starlist,data,currentJD,standard=standard)
+        return priority,currentphase
+    if method == "hour":
+        priority,currentphase = getpriority_hour(starlist,data,currentJD,lst,standard=standard)
         return priority,currentphase
 
     priority,currentphase = getpriority_inquad(starlist,data,currentJD,standard=standard)
