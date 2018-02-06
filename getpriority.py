@@ -290,25 +290,25 @@ if __name__ == "__main__":
     file='../Datafiles/newgoogledex.csv'
     data=ascii.read(file,format='csv')
     currentJD = 2457470.285449536
-    print "in quad"
-    print getpriority(data['starname'],data,currentJD,star_dates,method="inquad")
-    print "out of quad"
-    print getpriority(data['starname'],data,currentJD,star_dates,method="outquad")
-    print "random"
-    print getpriority(data['starname'],data,currentJD,star_dates,method="random")
-    print "uniform"
-    print getpriority(data['starname'],data,currentJD,star_dates,method="uniform")
+    print ("in quad")
+    print (getpriority(data['starname'],data,currentJD,star_dates,method="inquad"))
+    print ("out of quad")
+    print (getpriority(data['starname'],data,currentJD,star_dates,method="outquad"))
+    print ("random")
+    print (getpriority(data['starname'],data,currentJD,star_dates,method="random"))
+    print ("uniform")
+    print (getpriority(data['starname'],data,currentJD,star_dates,method="uniform"))
 
-    print "in quad"
+    print ("in quad")
     pri,cur= getpriority(data['starname'],data,currentJD,star_dates,standard=True,method="inquad")
-    print pri[pri > 0]
-    print "out of quad"
+    print (pri[pri > 0])
+    print ("out of quad")
     pri,cur= getpriority(data['starname'],data,currentJD,star_dates,standard=True,method="outquad")
-    print pri[pri > 0]    
-    print "random"
+    print (pri[pri > 0])
+    print ("random")
     pri,cur= getpriority(data['starname'],data,currentJD,star_dates,standard=True,method="random")
-    print pri[pri > 0]    
-    print "uniform"
+    print (pri[pri > 0]    )
+    print ("uniform")
     pri,cur= getpriority(data['starname'],data,currentJD,star_dates,standard=True,method="uniform")
-    print pri[pri > 0]    
+    print (pri[pri > 0]    )
 
