@@ -874,7 +874,7 @@ def getNext(time, seeing, slowdown, star_dates, bstar=False, standardstar=False,
     if verbose:
         apflog("getNext(): Parsing the Googledex...",echo=True)
     sn, star_table, do_flag, stars = parseGoogledex(sheetn=sheetn,outfn=googledex_file)
-    star_table['apfpri'],star_table['phases'] = getpriority.getpriority(star_table['starname'],star_table,ephem.julian_date(dt),star_dates,method=method,standard=standardstar)
+    star_table['apfpri'],star_table['phases'] = getpriority.getpriority(star_table['starname'],star_table,ephem.julian_date(dt),star_dates,apf_obs.sidereal_time(),method=method,standard=standardstar)
     
     targNum = len(sn)
     if verbose:
