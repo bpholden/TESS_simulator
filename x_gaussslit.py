@@ -52,5 +52,5 @@ if __name__ == "__main__":
     height = 27.78
     #    width = 74.07
     #    height = 74.07
-    print x_gaussslit(width/fwhm,height/fwhm,0,0)
+    print (x_gaussslit(width/fwhm,height/fwhm,0,0))
     
