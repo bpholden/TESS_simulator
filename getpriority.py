@@ -69,22 +69,25 @@ def getpriority_inquad(starlist,data,currentJD,standard=False):
     # first number is the current phase bin, the variable phasebins is based on only the current date
     # the second number is the number of past observations in the current phase bin, we only care about the number
     # divided by the number of desired observations 
-    priority[((phasebins == 1) & (phasebin1sat == 0)) | ((phasebins == 3) & (phasebin3sat == 0))] = 10
-    priority[((phasebins == 1) & (phasebin1sat == 1)) | ((phasebins == 3) & (phasebin3sat == 1))] = 3
-    priority[((phasebins == 0) & (phasebin0sat == 1)) | ((phasebins == 2) & (phasebin2sat == 1)) | ((phasebins == 4) & (phasebin4sat == 1))] = 1
-    priority[((phasebins == 0) & (phasebin0sat == 0)) | ((phasebins == 2) & (phasebin2sat == 0)) | ((phasebins == 4) & (phasebin4sat == 0))] = 5
-    priority[((phasebins == 0) & (phasebin0sat == 0) & (quadsat ==2)) | ((phasebins == 2) & (phasebin2sat == 0) & (quadsat ==2)) | ((phasebins == 4) & (phasebin4sat == 0) & (quadsat ==2))] = 8
-    
+#    priority[((phasebins == 1) & (phasebin1sat == 0)) | ((phasebins == 3) & (phasebin3sat == 0))] = 10
+#    priority[((phasebins == 1) & (phasebin1sat == 1)) | ((phasebins == 3) & (phasebin3sat == 1))] = 3
+#    priority[((phasebins == 0) & (phasebin0sat == 1)) | ((phasebins == 2) & (phasebin2sat == 1)) | ((phasebins == 4) & (phasebin4sat == 1))] = 1
+#    priority[((phasebins == 0) & (phasebin0sat == 0)) | ((phasebins == 2) & (phasebin2sat == 0)) | ((phasebins == 4) & (phasebin4sat == 0))] = 5
+#    priority[((phasebins == 0) & (phasebin0sat == 0) & (quadsat ==2)) | ((phasebins == 2) & (phasebin2sat == 0) & (quadsat ==2)) | ((phasebins == 4) & (phasebin4sat == 0) & (quadsat ==2))] = 8
+
+    # remap priorities to a much simpler version
+    priority[(phasebins == 1) | (phasebins == 3)] = 10
+    priority[(phasebins == 0) | (phasebins == 2) | (phasebins == 4)] = 5
+        
     #Case of standard star
     priority[data['initialphase']== -1] = 7
         
-    reallyinphase = ((currentphase > FIRSTSTART) & (currentphase < FIRSTEND)) | ((currentphase > SECONDSTART) & (currentphase < SECONDEND)) 
-
+#    reallyinphase = ((currentphase > FIRSTSTART) & (currentphase < FIRSTEND)) | ((currentphase > SECONDSTART) & (currentphase < SECONDEND)) 
     
-    #Add 1 to priorities if planet is <4 R_earth or if period > 30d
+    #Add 1 to priorities if planet is <4 R_earth 
     priority[data['minradius'] < 4] += 1
 #    priority[data['foldperiod'] > 30 ] += 1
-    priority[reallyinphase] += 1
+#    priority[reallyinphase] += 1
     priority += data['pri_offset']
 
     return priority,currentphase
