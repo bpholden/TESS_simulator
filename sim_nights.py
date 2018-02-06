@@ -64,14 +64,14 @@ def read_datefile(datefn):
     try:
         datefile = open(options.datefile)
     except Exception as e:
-        print "cannot open %s, and we died trying: %s" % (args[0], e)
+        print ("cannot open %s, and we died trying: %s" % (args[0], e))
         sys.exit()
 
     datelist = []
     for line in datefile:
         datestr, = line.split()
         if not ns.checkdate(datestr):
-            print "%s is not an acceptable date string" % (datestr)
+            print ("%s is not an acceptable date string" % (datestr))
             sys.exit()
         datelist.append(datestr)
         
@@ -144,7 +144,7 @@ def prep_master(outdir,mastername):
         try:
             masterfp = open(mastername)
         except Exception as e:
-            print "Cannot open file %s for output, %s,  exiting" % (mastername, e)
+            print ("Cannot open file %s for output, %s,  exiting" % (mastername, e))
             sys.exit()
         
         for ln in masterfp:
@@ -154,7 +154,7 @@ def prep_master(outdir,mastername):
     try:
         masterfp = open(mastername,"a+")
     except Exception as e:
-        print "Cannot open file %s for output, %s,  exiting" % (mastername, e)
+        print ("Cannot open file %s for output, %s,  exiting" % (mastername, e))
         sys.exit()
 
     return masterfp,star_strs, star_dates
@@ -169,11 +169,11 @@ def parse_args():
     parser.add_option("-o","--outdir",dest="outdir",default=".")        
     parser.add_option("-d","--double",dest="double",default=False,action="store_true")
     parser.add_option("-m","--masterfile",dest="master",default="sim_master.simout")
-    parser.add_option("-p","--priority",dest="method",default="inquad",choices=["inquad","outquad","uniform","random"])
+    parser.add_option("-p","--priority",dest="method",default="inquad",choices=["inquad","hour","outquad","uniform","random"])
     (options, args) = parser.parse_args()    
 
     if len(args) < 2 and options.datefile == "":
-        print "needs either a date pair or an input file which lists the dates"
+        print ("needs either a date pair or an input file which lists the dates")
         sys.exit()    
 
     if options.datefile != "":
@@ -198,7 +198,7 @@ def parse_args():
         try:    
             shutil.copyfile(options.infile, gd)
         except Exception as e:
-            print "cannot copy %s to %s: %s" % (options.infile,options.outdir,e)
+            print ("cannot copy %s to %s: %s" % (options.infile,options.outdir,e))
             sys.exit()
             
     return options, datelist
@@ -244,7 +244,7 @@ if __name__ == "__main__":
                 for i in range(0,int(result['NEXP'])):
                     (curtime,lastfwhm,lastslow,outstr) = compute_simulation(curtime,result,stars[indx],apf_obs,slowdowns,fwhms,star_table[indx])
                     sim_results(outstr,star_strs,star_dates)
-                    print outstr
+                    print (outstr)
                     masterfp.write("%s\n" % (outstr))
                     
                 ot = open(otfn,"a+")
@@ -259,13 +259,13 @@ if __name__ == "__main__":
         
             curtime = ephem.Date(curtime)
         
-        print "sun rose"
+        print ("sun rose")
 
         if os.path.isfile(otfn):
             try:
                 os.unlink(otfn)
             except:
-                print "cannot unlink %s" %(otfn)
+                print ("cannot unlink %s" %(otfn))
     if masterfp:
         masterfp.close()
     simoutdir = os.path.join("..","SimFiles",options.outdir)
@@ -273,7 +273,7 @@ if __name__ == "__main__":
         try:
             os.mkdir(simoutdir)
         except Exception as e:
-            print "cannot make output directory: %s - %s" % (simoutdir,e)
+            print ("cannot make output directory: %s - %s" % (simoutdir,e))
             sys.exit()
         
     write_sim_file_results(star_strs,outdir=simoutdir)

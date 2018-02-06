@@ -272,7 +272,7 @@ def update_googledex_lastobs(filename, sheetn="FakeGoogledex",time=None,certific
                 if jd > pastdate:
                     ws.update_cell(i+1, col+1, round(jd, 2) )
             except:
-                print v[0], v[col]
+                print (v[0], v[col])
                 
     apflog( "Updated Googledex",echo=True)
 
@@ -1046,10 +1046,10 @@ if __name__ == '__main__':
         #result = smartList("tst_targets", time.time(), 13.5, 2.4)
 
         if result is None:
-            print "Get None target"
+            print ("Get None target")
         else:
             for k in result:
-                print k, result[k]
+                print (k, result[k])
         ot = open(otfn,"a")
         ot.write("%s\n" % (result["SCRIPTOBS"]))
         ot.close()
@@ -1058,4 +1058,4 @@ if __name__ == '__main__':
 #    print "testing googledex updater"
 #    update_googledex_lastobs('observed_targets')
 
-    print "Done"
+    print ("Done")
