@@ -53,9 +53,6 @@ def compute_simulation(curtime,result,star,apf_obs,slowdowns,fwhms,star_tab):
     precision, deviation, true_error = ge.compute_real_uncertainty_sinnoise(totcounts,ephem.julian_date(curtime),star_tab)
     
     outstr = "%s %s %.5f %.1f %.1f %.2f %.2f %.2f %.2f %.2f" %(result['NAME'] , ephem.Date(curtime), ephem.julian_date(ephem.Date(barycentertime)), fexptime, totcounts, precision, deviation, true_error, actfwhm, actslow)
-#    print outstr
-#    for outfp in outfps:
-#        outfp.write(outstr + "\n")
     return curtime, lastfwhm, lastslow, outstr
 
 
@@ -190,7 +187,7 @@ def parse_args():
         try:
             os.mkdir(options.outdir)
         except Exception as e:
-            print "cannot make output directory: %s - %s" % (options.outdir,e)
+            print ("cannot make output directory: %s - %s" % (options.outdir,e))
             sys.exit()
 
     gd = os.path.join(options.outdir,options.infile)
