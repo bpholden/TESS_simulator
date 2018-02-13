@@ -6,6 +6,8 @@ destdir = ..
 
 srcdir = .
 
+datadir = ../../Datafiles/
+
 fitdir = ../../SystPy/
 
 SRC = ExposureCalculations.py \
@@ -40,10 +42,15 @@ FITSRC = fit_TESS_APF.py \
 	mcmc_velfits.py \
 	timedependent_mcmc_velfits.py
 
-install: install_src install_fit
+DATASRC = append_sinnoise_cols.py
+
+install: install_src install_fit install_data
 
 install_src:
 	$(INSTALL) $(SRC) $(destdir)
 
 install_fit:
 	$(INSTALL) $(FITSRC) $(fitdir)
+
+install_data:
+	$(INSTALL) $(DATASRC) $(datadir)
