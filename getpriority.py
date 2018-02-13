@@ -10,10 +10,10 @@ REQUIREDOBS=10
 
 #Set edges for priority bins
 EDGE0=0.0
-EDGE1=.15
-EDGE2=.35
-EDGE3=.65
-EDGE4=.85
+EDGE1=.125
+EDGE2=.375
+EDGE3=.625
+EDGE4=.875
 EDGE5=1.
 
 FIRSTSTART  =0.2
@@ -130,11 +130,14 @@ def getpriority_outquad(starlist,data,currentJD,standard=False):
     # first number is the current phase bin, the variable phasebins is based on only the current date
     # the second number is the number of past observations in the current phase bin, we only care about the number
     # divided by the number of desired observations 
-    priority[((phasebins == 1) & (phasebin1sat == 0)) | ((phasebins == 3) & (phasebin3sat == 0))] = 5
-    priority[((phasebins == 1) & (phasebin1sat == 1)) | ((phasebins == 3) & (phasebin3sat == 1))] = 1
-    priority[((phasebins == 0) & (phasebin0sat == 1)) | ((phasebins == 2) & (phasebin2sat == 1)) | ((phasebins == 4) & (phasebin4sat == 1))] = 3
-    priority[((phasebins == 0) & (phasebin0sat == 0)) | ((phasebins == 2) & (phasebin2sat == 0)) | ((phasebins == 4) & (phasebin4sat == 0))] = 10
-    priority[((phasebins == 1) & (phasebin1sat == 0) & (quadsat ==3)) | ((phasebins == 3) & (phasebin3sat == 0) & (quadsat ==3)) ] = 8
+    # priority[((phasebins == 1) & (phasebin1sat == 0)) | ((phasebins == 3) & (phasebin3sat == 0))] = 5
+    # priority[((phasebins == 1) & (phasebin1sat == 1)) | ((phasebins == 3) & (phasebin3sat == 1))] = 1
+    # priority[((phasebins == 0) & (phasebin0sat == 1)) | ((phasebins == 2) & (phasebin2sat == 1)) | ((phasebins == 4) & (phasebin4sat == 1))] = 3
+    # priority[((phasebins == 0) & (phasebin0sat == 0)) | ((phasebins == 2) & (phasebin2sat == 0)) | ((phasebins == 4) & (phasebin4sat == 0))] = 10
+    # priority[((phasebins == 1) & (phasebin1sat == 0) & (quadsat ==3)) | ((phasebins == 3) & (phasebin3sat == 0) & (quadsat ==3)) ] = 8
+
+    priority[((phasebins == 1) ) | ((phasebins == 3) )] = 5
+    priority[((phasebins == 0) ) | ((phasebins == 2) ) | ((phasebins == 4))] = 10
     
     #Case of standard star
     priority[data['initialphase']== -1] = 7
