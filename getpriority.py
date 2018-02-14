@@ -16,11 +16,6 @@ EDGE3=.625
 EDGE4=.875
 EDGE5=1.
 
-FIRSTSTART  =0.2
-FIRSTEND    =0.3
-SECONDSTART =0.7
-SECONDEND =  0.8
-
 
 def compute_currentphase(currentJD,obsperiod,initialphase):
     bad = initialphase < 0
