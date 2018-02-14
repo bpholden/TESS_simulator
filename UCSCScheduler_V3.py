@@ -212,7 +212,7 @@ def parseGoogledex(sheetn="FakeGoogledex",certificate='UCSC Dynamic Scheduler-5b
         
     
 
-    good = (alldata['precision'] > 0.0) & (alldata['vmag'] < 11) | (alldata['comments'] == 'B star')
+    good = ((alldata['est_K'] > 0.0) & (alldata['vmag'] < 11) & (alldata['vsini'] < 5)) | (alldata['comments'] == 'B star')
     data = alldata[good]
 
     names = data['starname']
@@ -233,6 +233,7 @@ def parseGoogledex(sheetn="FakeGoogledex",certificate='UCSC Dynamic Scheduler-5b
         decs.append(getDECRad(str(data['decdeg'][ind]),str(data['decmin'][ind]),str(data['decsec'][ind])))
     data['ra'] = np.asarray(ras)
     data['dec'] = np.asarray(decs)
+    data['precision'] = data['est_K'] * 0.5
     data['precision'][data['precision'] < 1.0] = 1.0
     return (names, data, do_flag, stars)
     
