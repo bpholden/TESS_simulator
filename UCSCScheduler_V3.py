@@ -317,7 +317,10 @@ def update_local_googledex(time,googledex_file="newgoogledex.csv", observed_file
                 binnum = np.digitize(binnedphase, phase_edges)
             except:
                 binnum = np.digitize([binnedphase], phase_edges)
-            binname = "phase%dbin" % (binnum)
+            if binnum > 3:
+                binnum = 0
+            binname = "phase%dbin" % (binnum+1)
+            
             full_codex[binname][sidx] += 1
             apflog( "Updating local googledex star %s phase bin %s to %d" % (name, binname, int(full_codex[binname][sidx])),echo=True)
 
