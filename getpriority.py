@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import numpy as np
 import scipy as sp
 from astropy.io import ascii
@@ -48,7 +50,7 @@ def getpriority_inquad(starlist,data,currentJD,standard=False):
         return priority,currentphase
 
     #Check the observation density of the stars' current phase bin
-    phasebin0sat=(data['phase0bin']/REQUIREDOBS)>=1
+#    phasebin0sat=(data['phase0bin']/REQUIREDOBS)>=1
     phasebin1sat=(data['phase1bin']/REQUIREDOBS)>=1
     phasebin2sat=(data['phase2bin']/REQUIREDOBS)>=1
     phasebin3sat=(data['phase3bin']/REQUIREDOBS)>=1
@@ -83,7 +85,7 @@ def getpriority_inquad(starlist,data,currentJD,standard=False):
     priority[data['minradius'] < 4] += 1
 #    priority[data['foldperiod'] > 30 ] += 1
 #    priority[reallyinphase] += 1
-    priority += data['pri_offset']
+#    priority += data['pri_offset']
 
     return priority,currentphase
 
@@ -109,7 +111,7 @@ def getpriority_outquad(starlist,data,currentJD,standard=False):
         return priority,currentphase
 
     #Check the observation density of the stars' current phase bin
-    phasebin0sat=(data['phase0bin']/REQUIREDOBS)>=1
+#    phasebin0sat=(data['phase0bin']/REQUIREDOBS)>=1
     phasebin1sat=(data['phase1bin']/REQUIREDOBS)>=1
     phasebin2sat=(data['phase2bin']/REQUIREDOBS)>=1
     phasebin3sat=(data['phase3bin']/REQUIREDOBS)>=1
@@ -141,7 +143,7 @@ def getpriority_outquad(starlist,data,currentJD,standard=False):
     #Add 1 to priorities if planet is <4 R_earth or if period > 30d
     priority[data['minradius'] < 4] += 1
 #    priority[data['foldperiod'] > 30 ] += 1
-    priority += data['pri_offset']
+#    priority += data['pri_offset']
 
     return priority,currentphase
 
@@ -167,7 +169,7 @@ def getpriority_uniform_old(starlist,data,currentJD,standard=False):
         return priority,currentphase
 
     #Check the observation density of the stars' current phase bin
-    phasebin0sat=(data['phase0bin']/REQUIREDOBS)>=1
+#    phasebin0sat=(data['phase0bin']/REQUIREDOBS)>=1
     phasebin1sat=(data['phase1bin']/REQUIREDOBS)>=1
     phasebin2sat=(data['phase2bin']/REQUIREDOBS)>=1
     phasebin3sat=(data['phase3bin']/REQUIREDOBS)>=1
@@ -187,7 +189,7 @@ def getpriority_uniform_old(starlist,data,currentJD,standard=False):
     #Add 1 to priorities if planet is <4 R_earth or if period > 30d
     priority[data['minradius'] < 4] += 1
 #    priority[data['foldperiod'] > 30 ] += 1
-    priority += data['pri_offset']
+#    priority += data['pri_offset']
 
     return priority,currentphase
 
@@ -231,7 +233,7 @@ def getpriority_uniform(starlist,data,currentJD,star_dates,standard=False):
     #Add 1 to priorities if planet is <4 R_earth or if period > 30d
     priority[data['minradius'] < 4] += 1
 #    priority[data['foldperiod'] > 30 ] += 1
-    priority += data['pri_offset']
+#    priority += data['pri_offset']
 
     return priority,currentphase
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import subprocess
 import argparse
 import shutil
@@ -34,7 +35,7 @@ else:
 
 
 if phase and phase not in allowed_phases:
-    print "%s is not an allowed phase" % (phase)
+    print ("%s is not an allowed phase" % (phase))
     sys.exit()
     
 outdir = prefix + "_" + scheme + "_noa_twothirds"
@@ -53,7 +54,7 @@ if phase == "nights" or phase == None:
         try:
             os.mkdir(outdir)
         except Exception as e:
-            print "cannot make %s: %s" % (outdir,e)
+            print ("cannot make %s: %s" % (outdir,e))
 
     shutil.copyfile("../Datafiles/newgoogledex_sinnoise.csv",fpold_googledex)
 
@@ -61,9 +62,9 @@ if phase == "nights" or phase == None:
     exstr = "python sim_nights.py -p %s -i %s %s %s -d -o %s" % (scheme,old_googledex,startdate,enddate,outdir)
     if seed:
         exstr += " -s %d" %(seed)
-    print exstr
+    print (exstr)
     out = subprocess.check_output(exstr,shell=True)
-    print out
+    print (out)
 #exstr = "python make_sim_files.py"
 #subprocess.check_output(exstr,shell=True)
 
@@ -78,7 +79,7 @@ if phase == "fit" or phase == None:
     #../SystPy/
     exstr = "python fit_TESS_APF.py -i %s -v %s -o %s -a" % (os.path.join("../simulator/",fpold_googledex),veldir,pfdir)
     out = subprocess.check_output(exstr,shell=True,cwd="../SystPy/")
-    print out
+    print (out)
     # ../simulator/
 
 if phase == "assess" or phase == None:
@@ -88,7 +89,7 @@ if phase == "assess" or phase == None:
 
     exstr = "python TESSAPF_assess.py -i %s -o %s -p %s" %(fpold_googledex,new_googledex,pfdir)
     out = subprocess.check_output(exstr,shell=True)
-    print out
+    print (out)
     fn_assess = "TESSAPF_assess_" + prefix + ".out"
     fn_assess = os.path.join(pfdir,fn_assess)
     fp = open(fn_assess,"w")
@@ -101,7 +102,7 @@ if phase == "cat" or phase == None:
     
     exstr = "python count_planets.py -i %s -o %s" %(pfdir,outcat)
     out = subprocess.check_output(exstr,shell=True)
-    print out
+    print (out)
 #exstr  = "python fillin_phasebins.py -i %s " % (new_googledex)
 #try:
 #    output = subprocess.check_output(exstr,shell=True)

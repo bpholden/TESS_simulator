@@ -1,4 +1,4 @@
-#from __future__ import print_function
+from __future__ import print_function
 #from __future__ import division
 import numpy as np
 from astropy.io import ascii
@@ -173,7 +173,7 @@ def write_vels(starname,simdata,velocities,phases,outdir="../VelsFiles/"):
         f.write(outstr)
     f.close()
 
-    print 'vels file saved as: '+filename
+    print ('vels file saved as: '+filename)
     
 def write_sys(TESSAPFdata,starname,velname="",outdir='../VelsFiles/'):
     loc=np.where(TESSAPFdata['star_names'] == starname)
@@ -196,5 +196,5 @@ def write_sys(TESSAPFdata,starname,velname="",outdir='../VelsFiles/'):
     f.write('}')
     f.close()
 
-    print 'sys file saved as: '+filename
+    print ('sys file saved as: '+filename)
     

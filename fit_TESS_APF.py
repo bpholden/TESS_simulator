@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 import sys
 import optparse
@@ -39,7 +40,7 @@ def parse_options():
     parser.add_option("-t","--tessapf",dest="mfn",default='../Datafiles/TESSAPF_AWMasses_prec_phase.csv')
     (options, args) = parser.parse_args()
     if len(args) < 1 and not options.all:
-        print "needs a star name"
+        print ("needs a star name")
         sys.exit()
     snames = []
 
@@ -60,7 +61,7 @@ def parse_options():
                 sname = a
             vname = os.path.join(veldir,sname + ".vels")
             if not os.path.exists(vname):
-                print "%s does not exist" %(sname)
+                print ("%s does not exist" %(sname))
                 sys.exit()
             snames.append(sname)
 
@@ -68,7 +69,7 @@ def parse_options():
         try:
             os.mkdir(options.outdir)
         except Exception as e:
-            print "cannot make dir %s: %s" % (options.outdir,e)
+            print ("cannot make dir %s: %s" % (options.outdir,e))
             sys.exit()
             
 
@@ -92,7 +93,7 @@ def bin_phase_dates(dates,phases,velocities,uncs,i2counts):
         curday = (done == False) & (ddates < 1.) & (ddates >= 0) & (dphase < 0.1) # same day
         curphases = phases[curday]
         if curphases.max() - curphases.min() > 0.1:
-            print "crossed a phase boundary"
+            print ("crossed a phase boundary")
         curdates = dates[curday]
         curvels = velocities[curday]
         curuncs = uncs[curday]
@@ -127,7 +128,7 @@ def add_planets(k,TESSAPFdata,planets,veloff):
             k.setElementFlag(i, w, SystPy.K_ACTIVE & SystPy.K_MINIMIZE)
         k.setElementFlag(i, SystPy.K_MASS, SystPy.K_ACTIVE | SystPy.K_MINIMIZE)
 #        k.setElementFlag(i, SystPy.K_MA, SystPy.K_ACTIVE | SystPy.K_MINIMIZE)
-        k.setPar(0,veloff) # sets the offset of the data set to be 0 m/s
+        k.setPar(0,veloff) # sets the offset of the data set to be tabulated offset in m/s
         k.setParFlag(0, SystPy.K_MINIMIZE | SystPy.K_ACTIVE)       # sets it to be fit
     
         k.calculate()
@@ -143,7 +144,7 @@ def fit_dates_vels(dates,vels,errs):
     odates = dates - np.min(dates)
     try:
         pcoeff, cov = np.polyfit(odates,vels,1,w=1.0/errs**2,cov=True)
-#    print pcoeff
+#    print (pcoeff)
 #    txt = "%.4f %.4f %.4f %.4f %.4f" % (pcoeff[0],pcoeff[1],np.max(odates),np.sqrt(cov[0][0]),np.sqrt(cov[1][1]))
         txt = "%.4f %.4f %.4f" % (pcoeff[0],pcoeff[1],np.max(odates))
     except:
@@ -168,7 +169,7 @@ def plot_planets(k,sname,initphases,vmag,rplanets,mplanets,planetids,veloff,writ
     m = SystPy.matrix_to_array(SystPy.getResidualMatrix(k))
     txt = fit_dates_vels(m[:,0],m[:,1],m[:,2])
     otxt = "%s %f" % (txt, k.getRMS())
-    print otxt
+    print (otxt)
 
     if writefit:
         outname = "%s.fit" % (sname)
@@ -211,10 +212,6 @@ def plot_planets(k,sname,initphases,vmag,rplanets,mplanets,planetids,veloff,writ
         plt.fill_between(xs,ylims[0],ylims[1],facecolor='grey',alpha=0.2)
         xs = np.asarray([getpriority.EDGE3,getpriority.EDGE4])
         plt.fill_between(xs,ylims[0],ylims[1],facecolor='grey',alpha=0.2)
-        xs = np.asarray([getpriority.FIRSTSTART,getpriority.FIRSTEND])
-        plt.fill_between(xs,ylims[0],ylims[1],facecolor='grey',alpha=0.5)
-        xs = np.asarray([getpriority.SECONDSTART,getpriority.SECONDEND])
-        plt.fill_between(xs,ylims[0],ylims[1],facecolor='grey',alpha=0.5)
         pstr= "Period %.2f days M=%.2f M$_{sun}$ V = %.2f mag" % (fperiod,k.getElement(0,1),vmag[i])
         plt.text(0.37,ylims[1]*0.9,pstr,va='bottom')
         pstr= "$M=%.2g \pm %.2g\ M_J$"% (k.getElement(i+1,SystPy.K_MASS),mads[i+1,SystPy.K_MASS])
@@ -261,11 +258,11 @@ def make_periodogram(k,sname,outdir="../PlanetFitting"):
     per = p[:,SystPy.K_PS_TIME][peaks]
     fap = p[:,SystPy.K_PS_FAP][peaks]
     sort = amp.argsort()[::-1]
-    #print amp[sort]
-    #print per[sort]
-    #print fap[sort]
+    #print (amp[sort])
+    #print (per[sort])
+    #print (fap[sort])
     t = Table([amp[sort],per[sort],fap[sort]], names=['Amp','Period','FAP'])
-#    print t[0:5]
+#    print (t[0:5])
 
     
     plt.plot(p[:,SystPy.K_PS_TIME], p[:,SystPy.K_PS_Z], c='black')
@@ -320,8 +317,8 @@ if __name__ == "__main__":
 
             add_planets(k,TESSAPFdata,planets,gd['vel_offset'][gd['starname'] == sname])
     
-            #print k.getElements()
-            print "%s: RMS of fit %f" % (sname,k.getRms())
+            #print (k.getElements())
+            print ("%s: RMS of fit %f" % (sname,k.getRms()))
 
             plot_planets(k,sname,TESSAPFdata['phase'][planets],TESSAPFdata['vmag'][planets],TESSAPFdata['rplanet'][planets],TESSAPFdata['true_mass'][planets],TESSAPFdata['Index'][planets],gd['vel_offset'][gd['starname'] == sname],veldir=veldir,outdir=outdir)
             # feature request, spit out periodogram
@@ -335,8 +332,8 @@ if __name__ == "__main__":
             k.addDataFile(bsfn, directory=ddir)
             add_planets(k,TESSAPFdata,planets,gd['vel_offset'][gd['starname'] == sname])
     
-            #print k.getElements()
-            print "%s: RMS of fit %f" % (sname,k.getRms())
+            #print (k.getElements())
+            print ("%s: RMS of fit %f" % (sname,k.getRms()))
 
             plot_planets(k,bvfn,TESSAPFdata['phase'][planets],TESSAPFdata['vmag'][planets],TESSAPFdata['rplanet'][planets],TESSAPFdata['true_mass'][planets],TESSAPFdata['Index'][planets],gd['vel_offset'][gd['starname'] == sname],writefit=True,veldir=veldir,outdir=outdir)
         

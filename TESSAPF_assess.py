@@ -217,7 +217,8 @@ def assess(input_gd_file,new_gd_file,fitfile_loc):
 
 
     #Print the stars that fall into each of the status catagories
-    print(len(publishable),' stars have at least one planet ready for publication:',publishable)
+    
+print(len(publishable),' stars have at least one planet ready for publication:',publishable)
     print('')
     print(len(monitor),' stars need continued monitoring: ',monitor)
     print('')
@@ -243,11 +244,11 @@ parser.add_option("-p","--path",dest="path",default="../PlanetFitting/")
 
 if not os.path.exists(options.infile):
     ostr= "%s does not exist" % (options.infile)
-    print( ostr)
+    print(ostr)
     sys.exit(-1)
     
 if os.path.exists(options.outfile):
-    print( "%s does exist, will not overwrite" % (options.outfile))
+    print("%s does exist, will not overwrite" % (options.outfile))
     sys.exit(-1)
 
 if not os.path.isdir(options.path):

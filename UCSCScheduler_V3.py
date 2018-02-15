@@ -1,3 +1,4 @@
+from __future__ import print_function
 # UCSCScheduler_V3.py
 # now featuring Dynamic Priorities(tm)!
 
