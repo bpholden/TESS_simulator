@@ -209,10 +209,12 @@ if __name__ == "__main__":
     options,datelist = parse_args()
     
     masterfp,star_strs, star_dates = prep_master(options.outdir,options.master)
+
+    outfn = os.path.join(options.outdir,options.infile)
     
     for datestr in datelist:
 
-        allnames, star_table, do_flag, stars  = ds.parseGoogledex(sheetn=options.googledex,outfn=os.path.join(options.outdir,options.infile))
+        allnames, star_table, do_flag, stars  = ds.parseGoogledex(sheetn=options.googledex,outfn=outfn)
     
         fwhms = ns.gen_seeing()
         slowdowns = ns.gen_clouds()
@@ -228,7 +230,7 @@ if __name__ == "__main__":
         standardstar=False
         while observing:
 
-            result = ds.getNext(curtime, lastfwhm, lastslow, star_dates, bstar=bstar, standardstar=standardstar, verbose=True,googledex_file=options.infile,method=options.method)
+            result = ds.getNext(curtime, lastfwhm, lastslow, star_dates, bstar=bstar, standardstar=standardstar, verbose=True,googledex_file=outfn,method=options.method)
             if result:
                 if standardstar:
                     standardstar = False
