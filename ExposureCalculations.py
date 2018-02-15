@@ -112,11 +112,7 @@ def getSpec_Rate( v, bv, el, seeing, decker="W"):
     light = x_gaussslit(slit_size[decker][0]/seeing, slit_size[decker][1]/seeing, 0, 0)
     # light = 0.442272
     
-    #if el < 15.0:
-     #   el = 15.0
-        # bogus exposure time but the APF does not work this low anyway
-        
-#    if len(bv) != len(el): print "Error: getEXPTime arrays don't match"
+
     if light > 0:
         VC = v - 2.5*np.log10(light)
         x = (-1/2.5) * (VC + alpha*bv + beta*(1/np.cos(np.radians(90-el))) + Const)
