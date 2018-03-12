@@ -83,13 +83,13 @@ try:
     hdr = "starid mass(earths) err(earths) true_mass(earths) radius(earths) period(days) n_obs K(m/s) err(m/s) true_K(m/s) V\n"
     outfp.write(hdr)
     outfp.write("#" + options.indir+"\n")
-except Exception, e:
+except Exception as e:
     print ("cannot open %s: %s" % (options.outfile,e))
     sys.exit(1)
 
 try:
     TESSAPFdata=ascii.read(options.mfn,format='csv')
-except Exception, e:
+except Exception as e:
     print ("cannot open %s: %s" % (options.mfn, e))
     sys.exit(1)
     
