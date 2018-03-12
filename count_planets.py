@@ -6,6 +6,7 @@ from glob import glob
 import re
 import optparse
 import sys
+import Generate_Velocities
 
 def parse_fit(infile):
     masses = []
@@ -50,13 +51,15 @@ def compile_data(indir,outfp,TESSAPFdata):
         m = re.search("(TESSAPF\d+)binned",fn)
         sname = m.group(1)
         truemass = TESSAPFdata['true_mass'][(TESSAPFdata['star_names'] == sname) & (TESSAPFdata['detected']=='TRUE')]
+        truek = Generate_Velocities.calc_K(TESSAPFdata,sname,dotrue=True)
+        vmag = TESSAPFdata['vmag'][(TESSAPFdata['star_names'] == sname) & (TESSAPFdata['detected']=='TRUE')]
         masses, errs, rplanets, nobs, periods, ks, errks = parse_fit(fn)
         np = len(masses)
         if int(nobs[0]) > 4:
             ntot += 1
         for i in range(0,np):
             ostr = "%s.%d " % (sname,(i+1))
-            ostr += "%s %s %f %s %s %s %s %s\n" % (masses[i],errs[i],truemass[i],rplanets[i],periods[i],nobs[i],ks[i],errks[i])
+            ostr += "%s %s %f %s %s %s %s %s %s %s\n" % (masses[i],errs[i],truemass[i],rplanets[i],periods[i],nobs[i],ks[i],errks[i],truek[i],vmag[i])
             outfp.write(ostr)
             cmass = float(masses[i])
             csn = cmass / float(errs[i])
@@ -77,7 +80,7 @@ parser.add_option("-t","--tessapf",dest="mfn",default='../Datafiles/TESSAPF_AWMa
 (options, args) = parser.parse_args()
 try:
     outfp = open(options.outfile,"w")
-    hdr = "# starid mass(earths) err(earths) true_mass(earths) radius(earths) period(days) n_obs K(m/s) err(m/s) \n"
+    hdr = "starid mass(earths) err(earths) true_mass(earths) radius(earths) period(days) n_obs K(m/s) err(m/s) true_K(m/s) V\n"
     outfp.write(hdr)
     outfp.write("#" + options.indir+"\n")
 except Exception, e:
