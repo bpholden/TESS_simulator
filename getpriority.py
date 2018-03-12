@@ -117,7 +117,7 @@ def getpriority_outquad(starlist,data,currentJD,standard=False):
     phasebin3sat=(data['phase3bin']/REQUIREDOBS)>=1
     phasebin4sat=(data['phase4bin']/REQUIREDOBS)>=1
 
-    quadsat = phasebin0sat + phasebin2sat + phasebin4sat
+    quadsat = phasebin2sat + phasebin4sat
 
     binedges = [EDGE1,EDGE2,EDGE3,EDGE4,EDGE5]
     phasebins = np.digitize(currentphase,binedges,right=True)
