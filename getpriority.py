@@ -324,28 +324,17 @@ if __name__ == "__main__":
         sim_nights.sim_results(ln,star_strs,star_dates)
     masterfp.close()
         
-    file='../Datafiles/newgoogledex.csv'
+    file='../Datafiles/newgoogledex_sinnoise.csv'
     data=ascii.read(file,format='csv')
+    data['ra'] = data['rahr'] + data['ramin']/60. + data['rasec']/3600. * 15. * np.pi/180.
+    data['dec'] = data['decdeg'] + data['decmin']/60. + data['decsec']/3600. * np.pi/180.
     currentJD = 2457470.285449536
-    print ("in quad")
-    print (getpriority(data['starname'],data,currentJD,star_dates,method="inquad"))
-    print ("out of quad")
-    print (getpriority(data['starname'],data,currentJD,star_dates,method="outquad"))
-    print ("random")
-    print (getpriority(data['starname'],data,currentJD,star_dates,method="random"))
-    print ("uniform")
-    print (getpriority(data['starname'],data,currentJD,star_dates,method="uniform"))
+    lst = 5.00
+    for m in ["inquad","outquad","random","uniform","hour"]:
+        print (m)
+        pri,cur= getpriority(data['starname'],data,currentJD,star_dates,lst,standard=False,method=m)
+        print (pri, cur)
+        pri,cur= getpriority(data['starname'],data,currentJD,star_dates,lst,standard=True,method=m)
+        print (pri[pri > 0])
 
-    print ("in quad")
-    pri,cur= getpriority(data['starname'],data,currentJD,star_dates,standard=True,method="inquad")
-    print (pri[pri > 0])
-    print ("out of quad")
-    pri,cur= getpriority(data['starname'],data,currentJD,star_dates,standard=True,method="outquad")
-    print (pri[pri > 0])
-    print ("random")
-    pri,cur= getpriority(data['starname'],data,currentJD,star_dates,standard=True,method="random")
-    print (pri[pri > 0]    )
-    print ("uniform")
-    pri,cur= getpriority(data['starname'],data,currentJD,star_dates,standard=True,method="uniform")
-    print (pri[pri > 0]    )
 
