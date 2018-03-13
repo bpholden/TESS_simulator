@@ -311,6 +311,7 @@ def update_local_googledex(time,googledex_file="newgoogledex.csv", observed_file
         
         jd = float(ephem.julian_date(t))
         sidx, = np.where(full_codex['starname'] == name)
+        full_codex['lastobs'][sidx] = jd
         if full_codex['initialphase'][sidx] > 0:
             phases = getpriority.compute_currentphase(jd,full_codex['foldperiod'][sidx],full_codex['initialphase'][sidx])
             binnedphase = np.average(phases)
@@ -989,15 +990,29 @@ def getNext(time, seeing, slowdown, star_dates, bstar=False, standardstar=False,
         apflog( "getNext(): Couldn't find any suitable targets!",level="error",echo=True)
         return None
 
-    pri = max(star_table['apfpri'][available])
-    sort_i = np.where(star_table['apfpri'][available] == pri, True, False)
+    cadence_check = (ephem.julian_date(dt) - star_table['lastobs']) / star_table['cadence']
+    good_cadence = np.where(cadence_check >  1.0, True, False)
+    good_cadence_available = available & good_cadence
 
+
+    if any(good_cadence_available):
+        try:
+            pri = max(star_table['apfpri'][good_cadence_available])
+            sort_i = np.where(star_table['apfpri'][good_cadence_available] == pri, True, False)
+        except:
+            pri = max(star_table['apf_pri'][available])
+            sort_i = np.where(star_table['apf_pri'][available] == pri, True, False)
+    elif any(available):
+        apflog( "getNext(): No new stars available, going back to the previously observed list.",level="warn",echo=True)
+        pri = max(star_table['apf_pri'][available])
+        sort_i = np.where(star_table['apf_pri'][available] == pri, True, False)
+    else:
+        apflog( "getNext(): Couldn't find any suitable targets!",level="error",echo=True)
+        return None
+    
     starstr = "getNext(): star table available: %s" % (sn[available][sort_i]) 
     apflog(starstr,echo=True)
 
-#    starstr = "getNext(): star table available priorities: %s" % (star_table['apfpri'][available][sort_i]) 
-#    apflog(starstr,echo=True)
-     
     sort_j = cur_elevations[available][sort_i].argsort()[::-1]
     
     t_n = sn[available][sort_i][sort_j][0]
@@ -1041,13 +1056,13 @@ if __name__ == '__main__':
     otfn = "observed_targets"
     ot = open(otfn,"w")
     starttime = time.time()
-    result = getNext(starttime, 13.99, 5, bstar=True, verbose=True)
+    result = getNext(starttime, 13.99, 5, 5.0, bstar=True, verbose=True)
     ot.write("%s\n" % (result["SCRIPTOBS"]))
     ot.close()
     starttime += 400
     for i in range(5):
         
-        result = getNext(starttime, 13.99, 0.4, bstar=False, verbose=True)
+        result = getNext(starttime, 13.99, 0.4, 5.0, bstar=False, verbose=True)
         #result = smartList("tst_targets", time.time(), 13.5, 2.4)
 
         if result is None:
@@ -1060,7 +1075,4 @@ if __name__ == '__main__':
         ot.close()
         starttime += result["EXP_TIME"]
                 
-#    print "testing googledex updater"
-#    update_googledex_lastobs('observed_targets')
-
     print ("Done")
