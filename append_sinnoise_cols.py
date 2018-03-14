@@ -17,5 +17,8 @@ gd['longperiod']=gd['rot_period']
 
 gd['pri_offset']=np.zeros_like(gd['vmag'])
 gd['vel_offset']=np.zeros_like(gd['vmag'])
+gd['lastobs']=np.zeros_like(gd['vmag'])
+gd['cadence']=np.zeros_like(gd['vmag'])
+gd['cadence'] += 0.7
 
 ascii.write(gd, output=ofn, format="csv")
