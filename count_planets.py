@@ -51,7 +51,8 @@ def compile_data(indir,outfp,TESSAPFdata):
         m = re.search("(TESSAPF\d+)binned",fn)
         sname = m.group(1)
         truemass = TESSAPFdata['true_mass'][(TESSAPFdata['star_names'] == sname) & (TESSAPFdata['detected']=='TRUE')]
-        truek = Generate_Velocities.calc_K(TESSAPFdata,sname,dotrue=True)
+        trueks = Generate_Velocities.calc_K(TESSAPFdata,sname,dotrue=True)
+        truek = trueks[TESSAPFdata['detected'][(TESSAPFdata['star_names'] == sname)] == 'TRUE']
         vmag = TESSAPFdata['vmag'][(TESSAPFdata['star_names'] == sname) & (TESSAPFdata['detected']=='TRUE')]
         masses, errs, rplanets, nobs, periods, ks, errks = parse_fit(fn)
         np = len(masses)
