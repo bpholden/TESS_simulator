@@ -230,7 +230,7 @@ if __name__ == "__main__":
         standardstar=False
         while observing:
 
-            result = ds.getNext(curtime, lastfwhm, lastslow, star_dates, bstar=bstar, standardstar=standardstar, verbose=True,googledex_file=outfn,method=options.method)
+            result = ds.getNext(curtime, lastfwhm, lastslow, star_dates, bstar=bstar, standardstar=standardstar, verbose=True,googledex_file=outfn,method=options.method,observed_file=otfn)
             if result:
                 if standardstar:
                     standardstar = False
@@ -249,6 +249,7 @@ if __name__ == "__main__":
                     
                 ot = open(otfn,"a+")
                 ot.write("%s\n" % (result["SCRIPTOBS"]))
+                ot.flush()
                 ot.close()
             else:
                 curtime += 2100./86400 # close for lack of target
