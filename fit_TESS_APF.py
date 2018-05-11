@@ -297,7 +297,7 @@ if __name__ == "__main__":
         invels = readin_velsfile(os.path.join(veldir,vfn))
         ddates,dphases, dvels, derrs, di2sums = bin_phase_dates(invels["jd"],invels["phases"],invels['velocity'],invels["int unc"],invels["I2 counts"])
         bvfn = sname + "binned"
-        ascii.write([ddates,dvels,derrs,di2sums,dphases], os.path.join(veldir,bvfn+".vels"),format="no_header")
+        ascii.write([ddates,dvels,derrs,di2sums,dphases], os.path.join(veldir,bvfn+".vels"),format="no_header",overwrite=True)
         Generate_Velocities.write_sys(TESSAPFdata,sname,velname=bvfn,outdir=veldir)
 
         newvels = checknumvels(invels,sname,outdir=outdir)
