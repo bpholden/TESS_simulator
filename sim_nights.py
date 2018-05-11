@@ -191,7 +191,7 @@ def parse_args():
             print ("cannot make output directory: %s - %s" % (options.outdir,e))
             sys.exit()
 
-    gd = os.path.join(options.outdir,options.infile)
+    gd = os.path.join(options.outdir,os.path.basename(options.infile))
     if not os.path.exists(gd):
         try:    
             shutil.copyfile(options.infile, gd)
@@ -210,7 +210,7 @@ if __name__ == "__main__":
     
     masterfp,star_strs, star_dates = prep_master(options.outdir,options.master)
 
-    outfn = os.path.join(options.outdir,options.infile)
+    outfn = os.path.join(options.outdir,os.path.basename(options.infile))
     
     for datestr in datelist:
 
