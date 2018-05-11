@@ -320,7 +320,7 @@ if __name__ == "__main__":
             #print (k.getElements())
             print ("%s: RMS of fit %f" % (sname,k.getRms()))
 
-            plot_planets(k,sname,TESSAPFdata['phase'][planets],TESSAPFdata['vmag'][planets],TESSAPFdata['rplanet'][planets],TESSAPFdata['true_mass'][planets],TESSAPFdata['Index'][planets],gd['vel_offset'][gd['starname'] == sname],veldir=veldir,outdir=outdir)
+            plot_planets(k,sname,TESSAPFdata['phase'][planets],TESSAPFdata['vmag'][planets],TESSAPFdata['rplanet'][planets],TESSAPFdata['true_mass'][planets],TESSAPFdata['Index'][planets],gd['vel_offset'][gd['starname'] == sname],writefit=True,veldir=veldir,outdir=outdir)
             # feature request, spit out periodogram
             make_periodogram(k,sname,outdir=outdir)
         # now do the binned velocities
