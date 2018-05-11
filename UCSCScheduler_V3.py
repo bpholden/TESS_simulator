@@ -790,7 +790,7 @@ def format_time(total, i2counts, hitthemall=False):
     return times, exps
 
 
-def getNext(time, seeing, slowdown, star_dates, bstar=False, standardstar=False, verbose=False,sheetn="FakeGoogledex",owner='Vogt',googledex_file="./newgoogledex.csv",method="inquad"):
+def getNext(time, seeing, slowdown, star_dates, bstar=False, standardstar=False, verbose=False,sheetn="FakeGoogledex",owner='Vogt',googledex_file="./newgoogledex.csv",method="inquad",observed_file="observed_targets"):
     """ Determine the best target for UCSC team to observe for the given input.
         Takes the time, seeing, and slowdown factor.
         Returns a dict with target RA, DEC, Total Exposure time, and scritobs line
@@ -829,7 +829,7 @@ def getNext(time, seeing, slowdown, star_dates, bstar=False, standardstar=False,
             ptime = datetime.utcnow()
 
     # List of targets already observed
-    observed, obstimes = update_local_googledex(ptime,googledex_file=googledex_file, observed_file=os.path.join(os.getcwd(),"observed_targets"))
+    observed, obstimes = update_local_googledex(ptime,googledex_file=googledex_file, observed_file=observed_file)
     
     global last_objs_attempted
     try:
