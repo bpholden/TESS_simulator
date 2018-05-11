@@ -999,13 +999,14 @@ def getNext(time, seeing, slowdown, star_dates, bstar=False, standardstar=False,
         try:
             pri = max(star_table['apfpri'][good_cadence_available])
             sort_i = np.where(star_table['apfpri'][good_cadence_available] == pri, True, False)
+            available = good_cadence_available
         except:
-            pri = max(star_table['apf_pri'][available])
-            sort_i = np.where(star_table['apf_pri'][available] == pri, True, False)
+            pri = max(star_table['apfpri'][available])
+            sort_i = np.where(star_table['apfpri'][available] == pri, True, False)
     elif any(available):
         apflog( "getNext(): No new stars available, going back to the previously observed list.",level="warn",echo=True)
-        pri = max(star_table['apf_pri'][available])
-        sort_i = np.where(star_table['apf_pri'][available] == pri, True, False)
+        pri = max(star_table['apfpri'][available])
+        sort_i = np.where(star_table['apfpri'][available] == pri, True, False)
     else:
         apflog( "getNext(): Couldn't find any suitable targets!",level="error",echo=True)
         return None
