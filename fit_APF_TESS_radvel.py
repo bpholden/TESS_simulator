@@ -18,7 +18,7 @@ import getpriority
 import Generate_Velocities
 from consts import JD0, ECC, OMEGA
 import radvel
-import ConfigParser
+
 
 
 
@@ -43,7 +43,7 @@ def parse_options():
     parser.add_option("-e","--extra",dest="extra",default=False)
     (options, args) = parser.parse_args()
     if len(args) < 1 and not options.all:
-        print "needs a star name"
+        print ("needs a star name")
         sys.exit()
     snames = []
 
@@ -64,7 +64,7 @@ def parse_options():
                 sname = a
             vname = os.path.join(veldir,sname + ".vels")
             if not os.path.exists(vname):
-                print "%s does not exist" %(sname)
+                print ("%s does not exist" %(sname))
                 sys.exit()
             snames.append(sname)
 
@@ -72,7 +72,7 @@ def parse_options():
         try:
             os.mkdir(options.outdir)
         except Exception as e:
-            print "cannot make dir %s: %s" % (options.outdir,e)
+            print ("cannot make dir %s: %s" % (options.outdir,e))
             sys.exit()
             
 
@@ -96,7 +96,7 @@ def bin_phase_dates(dates,phases,velocities,uncs,i2counts):
         curday = (done == False) & (ddates < 1.) & (ddates >= 0) & (dphase < 0.1) # same day
         curphases = phases[curday]
         if curphases.max() - curphases.min() > 0.1:
-            print "crossed a phase boundary"
+            print ("crossed a phase boundary")
         curdates = dates[curday]
         curvels = velocities[curday]
         curuncs = uncs[curday]
@@ -230,7 +230,7 @@ def mcmc_planets(post,outdir,sname,mstars,addextra=False):
     ensembles = 8
     msg = "Running MCMC for {}, N_ensembles = {}, N_walkers = {}, N_steps = {} ...".format(
         conf_base, ensembles, nwalkers, nsteps)
-    print msg
+    print (msg)
 
     chains = radvel.mcmc(
         post, nwalkers=nwalkers, nrun=nsteps,
@@ -261,7 +261,7 @@ def mcmc_planets(post,outdir,sname,mstars,addextra=False):
 
 
 
-    print "Saving output files..."
+    print ("Saving output files...")
     saveto = os.path.join(outdir, sname+'_post_summary_cps_efix_wfix.csv')
     post_summary.to_csv(saveto, sep=',')
     
@@ -297,7 +297,7 @@ if __name__ == "__main__":
             like = make_like(mod,invels,planets,addextra=addextra)
             post = init_posterior(like,planets,addextra=addextra)
             post = radvel.fitting.maxlike_fitting(post, verbose=False)
-            print post
+            print (post)
             for i in range(0,len(planets)):
                 Kmls.append(post.params['k%d' % (i+1)].value)
             chains,Ks,err_Ks,Ms,err_Ms = mcmc_planets(post,outdir,sname,TESSAPFdata['mstar'][planets],addextra=addextra)
