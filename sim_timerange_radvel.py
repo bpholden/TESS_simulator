@@ -34,7 +34,7 @@ else:
 
 
 if phase and phase not in allowed_phases:
-    print "%s is not an allowed phase" % (phase)
+    print ("%s is not an allowed phase" % (phase))
     sys.exit()
     
 outdir = prefix + "_" + scheme + "_noa_twothirds"
@@ -53,7 +53,7 @@ if phase == "nights" or phase == None:
         try:
             os.mkdir(outdir)
         except Exception as e:
-            print "cannot make %s: %s" % (outdir,e)
+            print ("cannot make %s: %s" % (outdir,e))
 
     shutil.copyfile("../Datafiles/newgoogledex_sinnoise.csv",fpold_googledex)
 
@@ -61,9 +61,9 @@ if phase == "nights" or phase == None:
     exstr = "python sim_nights.py -p %s -i %s %s %s -d -o %s" % (scheme,old_googledex,startdate,enddate,outdir)
     if seed:
         exstr += " -s %d" %(seed)
-    print exstr
+    print (exstr)
     out = subprocess.check_output(exstr,shell=True)
-    print out
+    print (out)
 #exstr = "python make_sim_files.py"
 #subprocess.check_output(exstr,shell=True)
 
@@ -78,7 +78,7 @@ if phase == "fit" or phase == None:
     #../SystPy/
     exstr = "python fit_APF_TESS_radvel.py -i %s -v %s -o %s -a" % (os.path.join("../simulator/",fpold_googledex),veldir,pfdir)
     out = subprocess.check_output(exstr,shell=True)
-    print out
+    print (out)
     # ../simulator/
 
 
@@ -88,4 +88,4 @@ if phase == "cat" or phase == None:
     
     exstr = "python make_radvel_catalogs.py -i %s -o %s" %(pfdir,outcat)
     out = subprocess.check_output(exstr,shell=True)
-    print out
+    print (out)
