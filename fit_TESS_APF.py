@@ -119,9 +119,13 @@ def add_planets(k,TESSAPFdata,planets,veloff):
 
     i = 1
     for idx in planets:
+        print (TESSAPFdata[idx])
         ma = TESSAPFdata['phase'][idx] * 360.0 + OMEGA * 180. / sc.pi
+        print (TESSAPFdata['phase'][idx], ma)
         if ma < 0:
             ma = ma + 360.0
+        if ma > 180.:
+            ma = 360. - ma
         k.addPlanet([SystPy.K_PER, TESSAPFdata['period'][idx], SystPy.K_MASS, TESSAPFdata['est_mass'][idx], SystPy.K_MA, ma, SystPy.K_ECC, 0.0, SystPy.K_DONE])
 
         for w in range(SystPy.K_ELEMENTS_SIZE):
@@ -197,7 +201,7 @@ def plot_planets(k,sname,initphases,vmag,rplanets,mplanets,planetids,veloff,writ
         plt.title('Phase folded velocities for ' + sname)
 
         #        K = k.getElement(i+1,SystPy.K_SEMIAMP)
-        K = meds[i+1,SystPy.K_SEMIAMP]
+        K = meds[i+1,SystPy.K_SEMIAMP] + meds[i+1,SystPy.K_P_DATA1]
         err_K = mads[i+1,SystPy.K_SEMIAMP]
         f=plotting_phases*2.*sc.pi
         pvels=(np.cos(f+OMEGA) + ECC*np.cos(OMEGA))
@@ -320,9 +324,9 @@ if __name__ == "__main__":
             #print (k.getElements())
             print ("%s: RMS of fit %f" % (sname,k.getRms()))
 
-            plot_planets(k,sname,TESSAPFdata['phase'][planets],TESSAPFdata['vmag'][planets],TESSAPFdata['rplanet'][planets],TESSAPFdata['true_mass'][planets],TESSAPFdata['Index'][planets],gd['vel_offset'][gd['starname'] == sname],writefit=True,veldir=veldir,outdir=outdir)
+#            plot_planets(k,sname,TESSAPFdata['phase'][planets],TESSAPFdata['vmag'][planets],TESSAPFdata['rplanet'][planets],TESSAPFdata['true_mass'][planets],TESSAPFdata['Index'][planets],gd['vel_offset'][gd['starname'] == sname],writefit=True,veldir=veldir,outdir=outdir)
             # feature request, spit out periodogram
-            make_periodogram(k,sname,outdir=outdir)
+#            make_periodogram(k,sname,outdir=outdir)
         # now do the binned velocities
 
             k=SystPy.Kernel()
