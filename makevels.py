@@ -8,7 +8,7 @@ import optparse
 import os
 
 parser = optparse.OptionParser()
-parser.add_option("-f","--file",dest="datafile",default="../Datafiles/TESSAPF_AWMasses_prec_phase.csv")
+parser.add_option("-f","--file",dest="datafile",default="../Datafiles/TESSAPF_AWMasses_prec_phase_R1_vsinicut.csv")
 parser.add_option("-i","--indir",dest="indir",default="../SimFiles/")        
 parser.add_option("-o","--outdir",dest="outdir",default=".")        
 (options, args) = parser.parse_args()    

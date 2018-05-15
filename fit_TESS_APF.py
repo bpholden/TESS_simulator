@@ -37,7 +37,7 @@ def parse_options():
     parser.add_option("-i","--infile",dest="infile",default="../Datafiles/newgoogledex.csv")
     parser.add_option("-v","--veldir",dest="veldir",default="../VelsFiles/")
     parser.add_option("-o","--outdir",dest="outdir",default="../PlanetFitting/")        
-    parser.add_option("-t","--tessapf",dest="mfn",default='../Datafiles/TESSAPF_AWMasses_prec_phase.csv')
+    parser.add_option("-t","--tessapf",dest="mfn",default='../Datafiles/TESSAPF_AWMasses_prec_phase_R1_vsinicut.csv')
     (options, args) = parser.parse_args()
     if len(args) < 1 and not options.all:
         print ("needs a star name")
