@@ -77,7 +77,7 @@ def compile_data(indir,outfp,TESSAPFdata):
 parser = optparse.OptionParser()
 parser.add_option("-i","--indir",dest="indir",default=".")
 parser.add_option("-o","--outfile",dest="outfile",default="mass_radius")
-parser.add_option("-t","--tessapf",dest="mfn",default='../Datafiles/TESSAPF_AWMasses_prec_phase.csv')
+parser.add_option("-t","--tessapf",dest="mfn",default='../Datafiles/TESSAPF_AWMasses_prec_phase_R1_vsinicut.csv')
 
 (options, args) = parser.parse_args()
 try:
