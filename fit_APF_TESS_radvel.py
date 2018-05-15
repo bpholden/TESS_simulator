@@ -303,5 +303,5 @@ if __name__ == "__main__":
                 Kmls.append(post.params['k%d' % (i+1)].value)
             chains,Ks,err_Ks,Ms,err_Ms = mcmc_planets(post,outdir,sname,TESSAPFdata['mstar'][planets],addextra=addextra)
 #            write_output(post,TESSAPFdata['phase'][planets],TESSAPFdata['vmag'][planets],TESSAPFdata['rplanet'][planets],TESSAPFdata['true_mass'][planets],TESSAPFdata['Index'][planets],gd['vel_offset'][gd['starname'] == sname],writefit=True,veldir=veldir,outdir=outdir)
-            plot_results(post,chains,outdir,sname)
+#            plot_results(post,chains,outdir,sname)
             writefit(sname,outdir,TESSAPFdata['period'][planets],Ks,err_Ks,Ms,err_Ms,Kmls,TESSAPFdata['rplanet'][planets],len(invels))
