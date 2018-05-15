@@ -7,6 +7,8 @@ import re
 import optparse
 import sys
 
+import Generate_Velocities
+
 def parse_fit(infile):
     masses = []
     errs = []
@@ -56,7 +58,10 @@ def compile_data(indir,outfp,TESSAPFdata):
             ntot += 1
         for i in range(0,np):
             ostr = "%s.%d " % (sname,(i+1))
-            ostr += "%s %s %f %s %s %s %s %s\n" % (masses[i],errs[i],truemass[i],rplanets[i],periods[i],nobs[i],ks[i],errks[i])
+
+            kmass = Generate_Velocities.calc_mass(ks[i],TESSAPFdata,sname)
+            kerr = kmass * errks[i] / ks[i] 
+            ostr += "%s %s %f %s %s %s %s %s\n" % (kmass,kerr,truemass[i],rplanets[i],periods[i],nobs[i],ks[i],errks[i])
             outfp.write(ostr)
             cmass = float(masses[i])
             csn = cmass / float(errs[i])
