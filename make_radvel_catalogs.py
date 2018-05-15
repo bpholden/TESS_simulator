@@ -1,3 +1,4 @@
+from __future__ import __print_function__
 from astropy.io import ascii
 import os
 import os.path
@@ -17,7 +18,7 @@ def parse_fit(infile):
     try:
         infp = open(infile)
     except:
-        print "cannot open %s" % (infile)
+        print ("cannot open %s" % (infile))
         return
     for ln in infp:
         d = ln.split()
@@ -80,18 +81,18 @@ try:
     outfp.write(hdr)
     outfp.write("#" + options.indir+"\n")
 except Exception, e:
-    print "cannot open %s: %s" % (options.outfile,e)
+    print ("cannot open %s: %s" % (options.outfile,e))
     sys.exit(1)
 
 try:
     TESSAPFdata=ascii.read(options.mfn,format='csv')
 except Exception, e:
-    print "cannot open %s: %s" % (options.mfn, e)
+    print ("cannot open %s: %s" % (options.mfn, e))
     sys.exit(1)
     
 sn, ntot, nsn, nfifty = compile_data(options.indir,outfp,TESSAPFdata)
 
-print "%d observed (n > 4 obs)" %(ntot)
-print "%d detected (sn > 7)" %(nsn)
-print "%d within 50 percent of true mass" %(nfifty)
+print ("%d observed (n > 4 obs)" %(ntot))
+print ("%d detected (sn > 7)" %(nsn))
+print ("%d within 50 percent of true mass" %(nfifty))
 
