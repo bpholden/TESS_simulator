@@ -298,6 +298,7 @@ if __name__ == "__main__":
             post = init_posterior(like,planets,addextra=addextra)
             post = radvel.fitting.maxlike_fitting(post, verbose=False)
             print (post)
+            Kmls = []
             for i in range(0,len(planets)):
                 Kmls.append(post.params['k%d' % (i+1)].value)
             chains,Ks,err_Ks,Ms,err_Ms = mcmc_planets(post,outdir,sname,TESSAPFdata['mstar'][planets],addextra=addextra)
