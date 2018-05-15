@@ -4,6 +4,7 @@ import numpy as np
 from astropy.io import ascii
 from astropy.table import Table, Column
 import scipy.constants as sc
+from scipy.optimize import minimize
 import re
 import os
 from consts import JD0, ECC, OMEGA
@@ -45,7 +46,26 @@ def calc_K(TESSAPFdata,starname,dotrue=True):
     #Calulate the RV amplitude (K) of each planet
     K=((2*sc.pi*sc.G/period_sec)**(1./3.)) * (truemasses/((mstar+truemasses)**(2./3.)))
 
-    return K
+    return float(K)
+
+def calc_mass(K,TESSAPFdata,starname):
+    
+    loc=np.where(TESSAPFdata['star_names'] == starname)        
+    periods=TESSAPFdata['period'][loc]
+    initphases=TESSAPFdata['phase'][loc]
+    cosi=TESSAPFdata['cosi'][loc][0]    #same for every planet
+    sini=np.sqrt(1-(cosi**2.))    #same for every planet
+    mstar=TESSAPFdata['mstar'][loc][0]  #same for every planet (duh)
+
+    #Convert to mks units
+    period_sec=periods*86400.                   #days -> seconds
+    mass=5.97237*(10.**24.)  #Earth mass -> kg
+    mstar= mstar*1988500*(10.**24.)           #Solar mass -> kg
+
+    dk = lambda mass :  np.abs(K - ((2*sc.pi*sc.G/period_sec)**(1./3.)) * (mass*5.97237*(10.**24.)/((mstar+mass*5.97237*(10.**24.))**(2./3.))))
+    f = minimize(dk,[1.])
+
+    return f.x[0]
 
 def calc_predrvs(TESSAPFdata,simdates,starname,dotrue=True):
 
