@@ -124,8 +124,6 @@ def add_planets(k,TESSAPFdata,planets,veloff):
         print (TESSAPFdata['phase'][idx], ma)
         if ma < 0:
             ma = ma + 360.0
-        if ma > 180.:
-            ma = 360. - ma
         k.addPlanet([SystPy.K_PER, TESSAPFdata['period'][idx], SystPy.K_MASS, TESSAPFdata['est_mass'][idx], SystPy.K_MA, ma, SystPy.K_ECC, 0.0, SystPy.K_DONE])
 
         for w in range(SystPy.K_ELEMENTS_SIZE):
