@@ -1,4 +1,4 @@
-from __future__ import __print_function__
+from __future__ import print_function
 from astropy.io import ascii
 import os
 import os.path
