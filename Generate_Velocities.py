@@ -46,7 +46,7 @@ def calc_K(TESSAPFdata,starname,dotrue=True):
     #Calulate the RV amplitude (K) of each planet
     K=((2*sc.pi*sc.G/period_sec)**(1./3.)) * (truemasses/((mstar+truemasses)**(2./3.)))
 
-    return float(K)
+    return K
 
 def calc_mass(K,periods,TESSAPFdata,starname):
     
