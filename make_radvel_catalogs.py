@@ -59,12 +59,12 @@ def compile_data(indir,outfp,TESSAPFdata):
         for i in range(0,np):
             ostr = "%s.%d " % (sname,(i+1))
 
-            kmass = Generate_Velocities.calc_mass(ks[i],TESSAPFdata,sname)
-            kerr = kmass * errks[i] / ks[i] 
-            ostr += "%s %s %f %s %s %s %s %s\n" % (kmass,kerr,truemass[i],rplanets[i],periods[i],nobs[i],ks[i],errks[i])
+            kmass = Generate_Velocities.calc_mass( float(ks[i]), float(periods[i]),TESSAPFdata,sname)
+            kerr = kmass * float(errks[i]) / float(ks[i] )
+            ostr += "%f %f %f %s %s %s %s %s\n" % (kmass,kerr,truemass[i],rplanets[i],periods[i],nobs[i],ks[i],errks[i])
             outfp.write(ostr)
-            cmass = float(masses[i])
-            csn = cmass / float(errs[i])
+            cmass = float(ks[i])
+            csn = cmass / float(errks[i])
             sn.append(csn)
             if csn > 7.0:
                 nsn += 1
