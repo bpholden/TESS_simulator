@@ -48,11 +48,9 @@ def calc_K(TESSAPFdata,starname,dotrue=True):
 
     return float(K)
 
-def calc_mass(K,TESSAPFdata,starname):
+def calc_mass(K,periods,TESSAPFdata,starname):
     
     loc=np.where(TESSAPFdata['star_names'] == starname)        
-    periods=TESSAPFdata['period'][loc]
-    initphases=TESSAPFdata['phase'][loc]
     cosi=TESSAPFdata['cosi'][loc][0]    #same for every planet
     sini=np.sqrt(1-(cosi**2.))    #same for every planet
     mstar=TESSAPFdata['mstar'][loc][0]  #same for every planet (duh)
@@ -61,8 +59,8 @@ def calc_mass(K,TESSAPFdata,starname):
     period_sec=periods*86400.                   #days -> seconds
     mass=5.97237*(10.**24.)  #Earth mass -> kg
     mstar= mstar*1988500*(10.**24.)           #Solar mass -> kg
-
-    dk = lambda mass :  np.abs(K - ((2*sc.pi*sc.G/period_sec)**(1./3.)) * (mass*5.97237*(10.**24.)/((mstar+mass*5.97237*(10.**24.))**(2./3.))))
+    mass = mass
+    dk = lambda mass :  np.abs(float(K) - ((2*sc.pi*sc.G/period_sec)**(1./3.)) * (mass*5.97237*(10.**24.)/((mstar+mass*5.97237*(10.**24.))**(2./3.))))
     f = minimize(dk,[1.])
 
     return f.x[0]
