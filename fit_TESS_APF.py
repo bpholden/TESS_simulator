@@ -198,14 +198,13 @@ def plot_planets(k,sname,initphases,vmag,rplanets,mplanets,planetids,veloff,writ
         plt.ylabel('Velocity (m s$^{-1}$)',fontsize=14)
         plt.title('Phase folded velocities for ' + sname)
 
-        #        K = k.getElement(i+1,SystPy.K_SEMIAMP)
-        K = meds[i+1,SystPy.K_SEMIAMP] + meds[i+1,SystPy.K_P_DATA1]
+        K = meds[i+1,SystPy.K_SEMIAMP] 
         err_K = mads[i+1,SystPy.K_SEMIAMP]
         f=plotting_phases*2.*sc.pi
         pvels=(np.cos(f+OMEGA) + ECC*np.cos(OMEGA))
         plt.plot(plotting_phases,K*pvels,'k-')
-        top = K*pvels+err_K
-        bot = K*pvels-err_K
+        top = K*pvels+err_K + meds[i+1,SystPy.K_P_DATA1]
+        bot = K*pvels-err_K + meds[i+1,SystPy.K_P_DATA1]
         plt.fill_between(plotting_phases,bot,top,color='blue',alpha=0.2)
 
         ylims = plt.ylim()
