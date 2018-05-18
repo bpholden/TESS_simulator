@@ -200,6 +200,8 @@ def plot_planets(k,sname,initphases,vmag,rplanets,mplanets,planetids,veloff,writ
 
         K = meds[i+1,SystPy.K_SEMIAMP] 
         err_K = mads[i+1,SystPy.K_SEMIAMP]
+        M = meds[i+1,SystPy.K_MASS] 
+        err_M = mads[i+1,SystPy.K_MASS]
         f=plotting_phases*2.*sc.pi
         pvels=(np.cos(f+OMEGA) + ECC*np.cos(OMEGA))
         plt.plot(plotting_phases,K*pvels + meds[i+1,SystPy.K_P_DATA1],'k-')
@@ -215,7 +217,7 @@ def plot_planets(k,sname,initphases,vmag,rplanets,mplanets,planetids,veloff,writ
         plt.fill_between(xs,ylims[0],ylims[1],facecolor='grey',alpha=0.2)
         pstr= "Period %.2f days M=%.2f M$_{sun}$ V = %.2f mag" % (fperiod,k.getElement(0,1),vmag[i])
         plt.text(0.37,ylims[1]*0.9,pstr,va='bottom')
-        pstr= "$M=%.2g \pm %.2g\ M_J$"% (k.getElement(i+1,SystPy.K_MASS),mads[i+1,SystPy.K_MASS])
+        pstr= "$M=%.2g \pm %.2g\ M_J$"% (M,err_M)
         plt.text(0.37,ylims[1]*0.8,pstr,va='bottom')        
         pstr="$(K = %.2f \pm %.2f \ m\ s^{-1})$" %(K,err_K)
         plt.text(0.37,ylims[1]*0.7,pstr,va='bottom')
@@ -234,7 +236,7 @@ def plot_planets(k,sname,initphases,vmag,rplanets,mplanets,planetids,veloff,writ
         plt.savefig(figname, bbox_inches='tight')
         plt.close()
         if writefit:
-            ostr = "%f %f %f %.4g %.4g %.4g %d" % (fperiod,K,err_K,k.getElement(i+1,SystPy.K_MASS)*317.83,mads[i+1,SystPy.K_MASS]*317.83,rplanets[i],len(phases))
+            ostr = "%f %f %f %.4g %.4g %.4g %d" % (fperiod,K,err_K,M*317.8281,err_M*317.8281,rplanets[i],len(phases))
             # period (days) K (m/s) err_K (m/s) planet mass (M_earth) error (M_earth) R (R_earth) #vs #phase1 #phase2 #phase3 #phase4 #phase5
             bstr = ""
             for i in range(0,len(ninbins)):
