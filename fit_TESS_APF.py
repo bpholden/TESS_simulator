@@ -313,7 +313,7 @@ if __name__ == "__main__":
             # planet masses are in earth masses, Systemic likes Jupiters
             #mearth = 5.9722e24
             #mjup = 1.898e27
-            mratio = 317.83
+            mratio = 317.8281
             TESSAPFdata['est_mass'] /= mratio
 
             add_planets(k,TESSAPFdata,planets,gd['vel_offset'][gd['starname'] == sname])

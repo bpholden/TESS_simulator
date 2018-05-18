@@ -143,7 +143,7 @@ def fit_planets(k,sname,initphases,vmag,rplanets,mplanets,planetids,veloff,outfi
         K = meds[i+1,SystPy.K_SEMIAMP]
         err_K = mads[i+1,SystPy.K_SEMIAMP]
 
-        ostr = "%s %f %f %f %.4g %.4g %.4g %d\n" % (sname,fperiod,K,err_K,k.getElement(i+1,SystPy.K_MASS)*317.83,mads[i+1,SystPy.K_MASS]*317.83,rplanets[i],len(phases))
+        ostr = "%s %f %f %f %.4g %.4g %.4g %d\n" % (sname,fperiod,K,err_K,k.getElement(i+1,SystPy.K_MASS)*317.8281,mads[i+1,SystPy.K_MASS]*317.8281,rplanets[i],len(phases))
         # period (days) K (m/s) err_K (m/s) planet mass (M_earth) error (M_earth) R (R_earth) #vs #phase1 #phase2 #phase3 #phase4 #phase5
         outfile.write(ostr)
         if writefit:

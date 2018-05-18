@@ -127,7 +127,7 @@ def mcmc_planets(k,sname,TESSAPFdata,indices,veloff,writefit=False,veldir="../Ve
             ninbins.append(len(cpb))
 
         if writefit:
-            ostr = "%f %f %f %.4g %.4g %.4g %d" % (fperiod,K,err_K,k.getElement(i+1,SystPy.K_MASS)*317.83,mads[i+1,SystPy.K_MASS]*317.83,rplanets[i],len(phases))
+            ostr = "%f %f %f %.4g %.4g %.4g %d" % (fperiod,K,err_K,k.getElement(i+1,SystPy.K_MASS)*317.8281,mads[i+1,SystPy.K_MASS]*317.8281,rplanets[i],len(phases))
             # period (days) K (m/s) err_K (m/s) planet mass (M_earth) error (M_earth) R (R_earth) #vs #phase1 #phase2 #phase3 #phase4 #phase5
             bstr = ""
             for i in range(0,len(ninbins)):
@@ -165,7 +165,7 @@ for sname in snames:
         # planet masses are in earth masses, Systemic likes Jupiters
         #mearth = 5.9722e24
         #mjup = 1.898e27
-    mratio = 317.83
+    mratio = 317.8281
     TESSAPFdata['est_mass'] /= mratio
 
     print "%s: RMS of fit %f" % (sname,k.getRms())
