@@ -192,7 +192,7 @@ def plot_planets(k,sname,initphases,vmag,rplanets,mplanets,planetids,veloff,writ
         plotting_phases = plotting_phases[(plotting_phases > 0) & (plotting_phases < 1)]
         plotting_phases = np.sort(plotting_phases)
         
-        plt.errorbar(phases,indata['velocity']-veloff,yerr=indata['int unc'],fmt='bo')
+        plt.errorbar(phases,indata['velocity'],yerr=indata['int unc'],fmt='bo')
         
         plt.xlabel('Phases',fontsize=14)
         plt.ylabel('Velocity (m s$^{-1}$)',fontsize=14)
@@ -202,7 +202,7 @@ def plot_planets(k,sname,initphases,vmag,rplanets,mplanets,planetids,veloff,writ
         err_K = mads[i+1,SystPy.K_SEMIAMP]
         f=plotting_phases*2.*sc.pi
         pvels=(np.cos(f+OMEGA) + ECC*np.cos(OMEGA))
-        plt.plot(plotting_phases,K*pvels,'k-')
+        plt.plot(plotting_phases,K*pvels + meds[i+1,SystPy.K_P_DATA1],'k-')
         top = K*pvels+err_K + meds[i+1,SystPy.K_P_DATA1]
         bot = K*pvels-err_K + meds[i+1,SystPy.K_P_DATA1]
         plt.fill_between(plotting_phases,bot,top,color='blue',alpha=0.2)
