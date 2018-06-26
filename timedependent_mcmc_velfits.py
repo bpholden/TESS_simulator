@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from astropy.io import ascii
 from astropy.table import Table
 import numpy as np
@@ -34,8 +36,6 @@ def bin_phase_dates(dates,phases,velocities,uncs,i2counts):
         dphase = phases - cphase
         curday = (done == False) & (ddates < 1.) & (ddates >= 0) & (dphase < 0.1) # same day
         curphases = phases[curday]
-        if curphases.max() - curphases.min() > 0.1:
-            print "crossed a phase boundary"
         curdates = dates[curday]
         curvels = velocities[curday]
         curuncs = uncs[curday]
@@ -67,7 +67,7 @@ def parse_options():
     parser.add_option("-t","--tessapf",dest="mfn",default='../Datafiles/TESSAPF_AWMasses_prec_phase.csv')
     (options, args) = parser.parse_args()
     if len(args) < 1 and not options.all:
-        print "needs a star name"
+        print ("needs a star name")
         sys.exit()
     snames = []
 
@@ -92,7 +92,7 @@ def parse_options():
                 sname = a
             vname = os.path.join(veldir,sname + ".vels")
             if not os.path.exists(vname):
-                print "%s does not exist" %(sname)
+                print ("%s does not exist" %(sname))
                 sys.exit()
             snames.append(sname)
 
@@ -100,14 +100,14 @@ def parse_options():
         try:
             os.mkdir(options.outdir)
         except Exception as e:
-            print "cannot make dir %s: %s" % (options.outdir,e)
+            print ("cannot make dir %s: %s" % (options.outdir,e))
             sys.exit()
             
 
     try:
         outfile = open(options.outfn,"a+")
     except Exception as e:
-        print "cannot open file %s: %s" % (options.outfn,e)
+        print ("cannot open file %s: %s" % (options.outfn,e))
         sys.exit()
             
     return snames,options.infile,options.mfn,veldir,options.outdir,outfile,binned
@@ -122,7 +122,7 @@ def fit_planets(k,sname,initphases,vmag,rplanets,mplanets,planetids,veloff,outfi
     m = SystPy.matrix_to_array(SystPy.getResidualMatrix(k))
     txt = fit_TESS_APF.fit_dates_vels(m[:,0],m[:,1],m[:,2])
     otxt = "%s %f" % (txt, k.getRMS())
-    print otxt
+    print (otxt)
 
     if writefit:
         outname = "%s.fit" % (sname)
@@ -204,8 +204,7 @@ for sname in snames:
         k.addDataFile(tbsysfn, directory=ddir)
         fit_TESS_APF.add_planets(k,TESSAPFdata,planets,gd['vel_offset'][gd['starname'] == sname])
         
-        #print k.getElements()
-        print "%s: RMS of fit %f" % (sname,k.getRms())
+        print ("%s: RMS of fit %f" % (sname,k.getRms()))
 
         fit_planets(k,tname,TESSAPFdata['phase'][planets],TESSAPFdata['vmag'][planets],TESSAPFdata['rplanet'][planets],TESSAPFdata['true_mass'][planets],TESSAPFdata['Index'][planets],gd['vel_offset'][gd['starname'] == sname],outfile,writefit=True,veldir=veldir,outdir=outdir)
 
